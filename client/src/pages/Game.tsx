@@ -10,6 +10,7 @@ export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
   const audioManagerRef = useRef<AudioManager | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const [, setLocation] = useLocation();
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
@@ -22,10 +23,13 @@ export default function Game() {
     if (!canvasRef.current) return;
 
     // Initialize game engine
-    const engine = new GameEngine(canvasRef.current, {
-      onScoreUpdate: setScore,
-      onComboUpdate: setCombo,
-      onHealthUpdate: setHealth,
+    const engine = new GameEngine(canvasRef.current);
+    
+    // Set callbacks
+    engine.setCallbacks({
+      onScoreChange: setScore,
+      onComboChange: setCombo,
+      onLivesChange: setHealth,
       onGameOver: () => {
         setIsGameOver(true);
         setIsPlaying(false);
@@ -33,6 +37,16 @@ export default function Game() {
     });
 
     gameEngineRef.current = engine;
+
+    // Game loop
+    const gameLoop = () => {
+      if (gameEngineRef.current) {
+        gameEngineRef.current.update();
+        gameEngineRef.current.render();
+      }
+      animationFrameRef.current = requestAnimationFrame(gameLoop);
+    };
+    gameLoop();
 
     // Load audio and chart
     const loadAudioAndChart = async () => {
@@ -52,7 +66,8 @@ export default function Game() {
         audioManagerRef.current = audioManager;
         
         // Set audio and chart to game engine
-        engine.setAudioAndChart(audioManager, chartData);
+        engine.setAudioManager(audioManager);
+        engine.setChartData(chartData);
         
         setIsLoading(false);
         toast.success(`Loaded ${chartData.notes.length} notes!`);
@@ -65,8 +80,34 @@ export default function Game() {
 
     loadAudioAndChart();
 
+    // Handle pointer events
+    const handlePointerDown = (e: PointerEvent) => {
+      if (!canvasRef.current || !gameEngineRef.current) return;
+      const rect = canvasRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (canvasRef.current.width / rect.width);
+      const y = (e.clientY - rect.top) * (canvasRef.current.height / rect.height);
+      gameEngineRef.current.handleSwipe(x, y);
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!canvasRef.current || !gameEngineRef.current) return;
+      if (e.buttons === 0) return; // Only track when pointer is down
+      const rect = canvasRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (canvasRef.current.width / rect.width);
+      const y = (e.clientY - rect.top) * (canvasRef.current.height / rect.height);
+      gameEngineRef.current.handleSwipe(x, y);
+    };
+
+    const canvas = canvasRef.current;
+    canvas.addEventListener('pointerdown', handlePointerDown);
+    canvas.addEventListener('pointermove', handlePointerMove);
+
     return () => {
-      engine.destroy();
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      canvas.removeEventListener('pointermove', handlePointerMove);
     };
   }, []);
 
@@ -128,10 +169,10 @@ export default function Game() {
           <div className="text-center">
             <div className="text-xs text-muted-foreground">HEALTH</div>
             <div className="text-xl glow-red font-bold flex gap-1">
-              {[...Array(health)].map((_, i) => (
+              {[...Array(Math.max(0, health))].map((_, i) => (
                 <span key={i}>❤️</span>
               ))}
-              {[...Array(Math.max(0, 3 - health))].map((_, i) => (
+              {[...Array(Math.max(0, 3 - Math.max(0, health)))].map((_, i) => (
                 <span key={i} className="opacity-30">🖤</span>
               ))}
             </div>
@@ -174,10 +215,8 @@ export default function Game() {
       <div className="flex-1 flex items-center justify-center p-4 relative">
         <canvas
           ref={canvasRef}
-          width={800}
-          height={600}
-          className="border-4 border-border rounded-lg shadow-2xl"
-          style={{ maxWidth: '100%', height: 'auto' }}
+          className="border-4 border-border rounded-lg shadow-2xl touch-none"
+          style={{ maxWidth: '100%', maxHeight: '100%', width: '100vw', height: '100vh' }}
         />
 
         {/* Game Over Overlay */}
@@ -223,7 +262,7 @@ export default function Game() {
 
       {/* Instructions */}
       <div className="p-4 bg-card border-t-2 border-border text-center text-xs text-muted-foreground">
-        <p>Click or touch to slash enemies • Avoid bombs • Keep your combo going!</p>
+        <p>Swipe to slash enemies • Avoid bombs • Keep your combo going!</p>
       </div>
     </div>
   );

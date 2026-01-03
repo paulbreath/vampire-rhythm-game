@@ -1,256 +1,240 @@
-import { AudioManager, SoundEffectManager } from './audioManager';
-import { ChartData, ChartNote } from './chartLoader';
-
-/**
- * 游戏引擎核心类
- * 负责游戏循环、渲染、碰撞检测和音频同步
- */
-
-export interface GameConfig {
-  onScoreUpdate: (score: number) => void;
-  onComboUpdate: (combo: number) => void;
-  onHealthUpdate: (health: number) => void;
-  onGameOver: () => void;
-}
+import { AudioManager } from './audioManager';
+import { ChartData } from './chartLoader';
 
 export interface Enemy {
-  id: string;
+  id: number;
   type: 'bat_blue' | 'bat_purple' | 'bat_red' | 'bat_yellow' | 'vampire' | 'bomb';
   x: number;
   y: number;
-  targetY: number;
   speed: number;
   size: number;
-  isHit: boolean;
-  hitTime?: number;
+  color: string;
+  image?: HTMLImageElement; // 敌人精灵图
 }
 
-export interface SlashTrail {
-  points: { x: number; y: number; time: number }[];
-  color: string;
+export interface Player {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  image?: HTMLImageElement; // 玩家精灵图
 }
+
+export type GameOrientation = 'portrait' | 'landscape';
 
 export class GameEngine {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private config: GameConfig;
-  
-  private audioManager: AudioManager | null = null;
-  private soundEffects: SoundEffectManager;
-  private chartData: ChartData | null = null;
-  
   private enemies: Enemy[] = [];
-  private upcomingNotes: ChartNote[] = [];
-  private noteIndex = 0;
-  private slashTrails: SlashTrail[] = [];
-  private animationFrameId: number | null = null;
+  private player: Player;
+  private score: number = 0;
+  private combo: number = 0;
+  private lives: number = 3;
+  private maxLives: number = 3;
+  private isPaused: boolean = false;
+  private isGameOver: boolean = false;
+  private lastSpawnTime: number = 0;
+  private spawnInterval: number = 1000;
+  private swipeTrail: { x: number; y: number; time: number }[] = [];
+  private trailMaxLength: number = 20;
+  private nextEnemyId: number = 0;
   
-  private score = 0;
-  private combo = 0;
-  private health = 3;
-  private isRunning = false;
-  private isPaused = false;
+  // 音频和谱面相关
+  private audioManager: AudioManager | null = null;
+  private chartData: ChartData | null = null;
+  private upcomingNotes: Array<{ time: number; type: Enemy['type'] }> = [];
   
-  private lastSpawnTime = 0;
-  private spawnInterval = 1000; // ms
+  // 屏幕方向
+  private orientation: GameOrientation = 'portrait';
   
-  private mouseDown = false;
-  private currentTrail: { x: number; y: number; time: number }[] = [];
+  // 背景图片
+  private backgroundImage: HTMLImageElement | null = null;
   
-  constructor(canvas: HTMLCanvasElement, config: GameConfig) {
+  // 敌人精灵图
+  private enemyImages: Map<Enemy['type'], HTMLImageElement> = new Map();
+  
+  // 回调函数
+  private onScoreChange?: (score: number) => void;
+  private onComboChange?: (combo: number) => void;
+  private onLivesChange?: (lives: number) => void;
+  private onGameOver?: () => void;
+
+  constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Failed to get 2D context');
-    this.ctx = ctx;
-    this.config = config;
-    
-    // 初始化音效管理器
-    this.soundEffects = new SoundEffectManager();
-    this.initSoundEffects();
-    
-    this.setupEventListeners();
-  }
-  
-  /**
-   * 初始化音效
-   */
-  private initSoundEffects() {
-    // 生成简单的打击音效
-    this.soundEffects.addGeneratedSound('hit_bat', 800, 0.1);
-    this.soundEffects.addGeneratedSound('hit_vampire', 600, 0.15);
-    this.soundEffects.addGeneratedSound('hit_bomb', 200, 0.2);
-  }
-  
-  /**
-   * 设置音频和谱面
-   */
-  public setAudioAndChart(audioManager: AudioManager, chartData: ChartData) {
-    this.audioManager = audioManager;
-    this.chartData = chartData;
-    this.upcomingNotes = [...chartData.notes];
-    this.noteIndex = 0;
-  }
-  
-  private setupEventListeners() {
-    // Mouse events
-    this.canvas.addEventListener('mousedown', this.handlePointerDown);
-    this.canvas.addEventListener('mousemove', this.handlePointerMove);
-    this.canvas.addEventListener('mouseup', this.handlePointerUp);
-    
-    // Touch events
-    this.canvas.addEventListener('touchstart', this.handleTouchStart);
-    this.canvas.addEventListener('touchmove', this.handleTouchMove);
-    this.canvas.addEventListener('touchend', this.handleTouchEnd);
-  }
-  
-  private handlePointerDown = (e: MouseEvent) => {
-    this.mouseDown = true;
-    const rect = this.canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-    const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
-    this.currentTrail = [{ x, y, time: Date.now() }];
-  };
-  
-  private handlePointerMove = (e: MouseEvent) => {
-    if (!this.mouseDown) return;
-    const rect = this.canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-    const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
-    this.currentTrail.push({ x, y, time: Date.now() });
-    
-    // Check collision with enemies
-    this.checkSlashCollision(x, y);
-  };
-  
-  private handlePointerUp = () => {
-    this.mouseDown = false;
-    if (this.currentTrail.length > 1) {
-      this.slashTrails.push({
-        points: [...this.currentTrail],
-        color: '#ff0033'
-      });
+    const context = canvas.getContext('2d');
+    if (!context) {
+      throw new Error('Failed to get 2D context');
     }
-    this.currentTrail = [];
-  };
-  
-  private handleTouchStart = (e: TouchEvent) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect = this.canvas.getBoundingClientRect();
-    const x = (touch.clientX - rect.left) * (this.canvas.width / rect.width);
-    const y = (touch.clientY - rect.top) * (this.canvas.height / rect.height);
-    this.mouseDown = true;
-    this.currentTrail = [{ x, y, time: Date.now() }];
-  };
-  
-  private handleTouchMove = (e: TouchEvent) => {
-    e.preventDefault();
-    if (!this.mouseDown) return;
-    const touch = e.touches[0];
-    const rect = this.canvas.getBoundingClientRect();
-    const x = (touch.clientX - rect.left) * (this.canvas.width / rect.width);
-    const y = (touch.clientY - rect.top) * (this.canvas.height / rect.height);
-    this.currentTrail.push({ x, y, time: Date.now() });
+    this.ctx = context;
     
-    // Check collision
-    this.checkSlashCollision(x, y);
-  };
+    // 初始化玩家位置（根据屏幕方向）
+    this.player = this.initializePlayer();
+    
+    // 检测屏幕方向
+    this.detectOrientation();
+    window.addEventListener('resize', () => this.handleResize());
+    
+    // 设置画布大小
+    this.resizeCanvas();
+    
+    // 加载美术资源
+    this.loadAssets();
+  }
   
-  private handleTouchEnd = (e: TouchEvent) => {
-    e.preventDefault();
-    this.handlePointerUp();
-  };
+  private detectOrientation(): void {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    this.orientation = width > height ? 'landscape' : 'portrait';
+    console.log(`Screen orientation: ${this.orientation} (${width}x${height})`);
+  }
   
-  private checkSlashCollision(x: number, y: number) {
-    for (const enemy of this.enemies) {
-      if (enemy.isHit) continue;
-      
-      const dx = x - enemy.x;
-      const dy = y - enemy.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      if (distance < enemy.size) {
-        this.hitEnemy(enemy);
-      }
+  private handleResize(): void {
+    const oldOrientation = this.orientation;
+    this.detectOrientation();
+    this.resizeCanvas();
+    
+    // 如果方向改变，重新初始化玩家位置
+    if (oldOrientation !== this.orientation) {
+      this.player = this.initializePlayer();
+      console.log(`Orientation changed to ${this.orientation}, player repositioned`);
     }
   }
   
-  private hitEnemy(enemy: Enemy) {
-    enemy.isHit = true;
-    enemy.hitTime = Date.now();
+  private initializePlayer(): Player {
+    const width = this.canvas.width || window.innerWidth;
+    const height = this.canvas.height || window.innerHeight;
     
-    // 播放音效
-    if (enemy.type === 'bomb') {
-      this.soundEffects.play('hit_bomb', 0.5);
-    } else if (enemy.type === 'vampire') {
-      this.soundEffects.play('hit_vampire', 0.7);
+    if (this.orientation === 'portrait') {
+      // 竖屏：玩家在底部
+      return {
+        x: width / 2,
+        y: height - 100,
+        width: 80,
+        height: 120,
+      };
     } else {
-      this.soundEffects.play('hit_bat', 0.6);
-    }
-    
-    if (enemy.type === 'bomb') {
-      // Hit bomb - lose health and reset combo
-      this.health = Math.max(0, this.health - 1);
-      this.combo = 0;
-      this.config.onHealthUpdate(this.health);
-      this.config.onComboUpdate(this.combo);
-      
-      if (this.health <= 0) {
-        this.gameOver();
-      }
-    } else {
-      // Hit enemy - gain score and combo
-      const baseScore = enemy.type === 'vampire' ? 100 : 50;
-      const comboMultiplier = 1 + (this.combo * 0.1);
-      const earnedScore = Math.floor(baseScore * comboMultiplier);
-      
-      this.score += earnedScore;
-      this.combo += 1;
-      
-      this.config.onScoreUpdate(this.score);
-      this.config.onComboUpdate(this.combo);
+      // 横屏：玩家在左侧
+      return {
+        x: 150,
+        y: height / 2,
+        width: 80,
+        height: 120,
+      };
     }
   }
   
-  private spawnEnemy(noteType?: Enemy['type']) {
-    let selectedType: Enemy['type'];
-    
-    if (noteType) {
-      // 使用谱面指定的类型
-      selectedType = noteType;
-    } else {
-      // 随机生成（用于无谱面模式）
-      const types: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb'];
-      const weights = [25, 20, 15, 15, 20, 5];
-      
-      const totalWeight = weights.reduce((a, b) => a + b, 0);
-      let random = Math.random() * totalWeight;
-      selectedType = 'bat_blue';
-      
-      for (let i = 0; i < types.length; i++) {
-        random -= weights[i];
-        if (random <= 0) {
-          selectedType = types[i];
-          break;
-        }
-      }
-    }
-    
-    const enemy: Enemy = {
-      id: Math.random().toString(36),
-      type: selectedType,
-      x: Math.random() * (this.canvas.width - 100) + 50,
-      y: this.canvas.height + 50,
-      targetY: Math.random() * (this.canvas.height * 0.6) + 50,
-      speed: 2 + Math.random() * 2,
-      size: selectedType === 'vampire' ? 40 : selectedType === 'bomb' ? 30 : 35,
-      isHit: false
+  private async loadAssets(): Promise<void> {
+    // 加载背景
+    const bgImg = new Image();
+    bgImg.src = '/images/backgrounds/castle-bg.png';
+    bgImg.onload = () => {
+      this.backgroundImage = bgImg;
+      console.log('Background loaded');
     };
     
-    this.enemies.push(enemy);
+    // 加载玩家精灵
+    const playerImg = new Image();
+    playerImg.src = '/images/characters/blade-warrior-side.png';
+    playerImg.onload = () => {
+      this.player.image = playerImg;
+      console.log('Player sprite loaded');
+    };
+    
+    // 加载敌人精灵
+    const enemyTypes: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb'];
+    const enemyImagePaths: Record<Enemy['type'], string> = {
+      bat_blue: '/images/enemies/bat-blue-side.png',
+      bat_purple: '/images/enemies/bat-purple-side.png',
+      bat_red: '/images/enemies/bat-red-side.png',
+      bat_yellow: '/images/enemies/bat-yellow-side.png',
+      vampire: '/images/enemies/vampire-boss-side.png',
+      bomb: '/images/enemies/bomb-bat-side.png',
+    };
+    
+    for (const type of enemyTypes) {
+      const img = new Image();
+      img.src = enemyImagePaths[type];
+      img.onload = () => {
+        this.enemyImages.set(type, img);
+        console.log(`Enemy sprite loaded: ${type}`);
+      };
+    }
+  }
+
+  private resizeCanvas(): void {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  }
+
+  public setCallbacks(callbacks: {
+    onScoreChange?: (score: number) => void;
+    onComboChange?: (combo: number) => void;
+    onLivesChange?: (lives: number) => void;
+    onGameOver?: () => void;
+  }): void {
+    this.onScoreChange = callbacks.onScoreChange;
+    this.onComboChange = callbacks.onComboChange;
+    this.onLivesChange = callbacks.onLivesChange;
+    this.onGameOver = callbacks.onGameOver;
   }
   
-  private update(deltaTime: number) {
+  public setAudioManager(audioManager: AudioManager): void {
+    this.audioManager = audioManager;
+  }
+  
+  public setChartData(chartData: ChartData): void {
+    this.chartData = chartData;
+    // 复制音符列表
+    this.upcomingNotes = chartData.notes.map(note => ({
+      time: note.time,
+      type: note.type as Enemy['type']
+    }));
+    console.log(`Loaded ${this.upcomingNotes.length} notes from chart`);
+  }
+
+  public start(): void {
+    this.isPaused = false;
+    this.isGameOver = false;
+    this.score = 0;
+    this.combo = 0;
+    this.lives = this.maxLives;
+    this.enemies = [];
+    this.swipeTrail = [];
+    this.lastSpawnTime = Date.now();
+    
+    // 重置音符列表
+    if (this.chartData) {
+      this.upcomingNotes = this.chartData.notes.map(note => ({
+        time: note.time,
+        type: note.type as Enemy['type']
+      }));
+    }
+    
+    // 开始播放音乐
+    if (this.audioManager) {
+      this.audioManager.play();
+    }
+    
+    this.onScoreChange?.(this.score);
+    this.onComboChange?.(this.combo);
+    this.onLivesChange?.(this.lives);
+  }
+
+  public pause(): void {
+    this.isPaused = true;
+    if (this.audioManager) {
+      this.audioManager.pause();
+    }
+  }
+
+  public resume(): void {
+    this.isPaused = false;
+    if (this.audioManager) {
+      this.audioManager.play();
+    }
+  }
+
+  public update(): void {
     if (this.isPaused) return;
     
     const now = Date.now();
@@ -283,249 +267,362 @@ export class GameEngine {
         this.lastSpawnTime = now;
       }
     }
-    
-    // Update enemies
-    for (let i = this.enemies.length - 1; i >= 0; i--) {
-      const enemy = this.enemies[i];
-      
-      if (enemy.isHit) {
-        // Remove hit enemies after animation
-        if (now - (enemy.hitTime || 0) > 300) {
-          this.enemies.splice(i, 1);
-        }
-        continue;
+
+    // 更新敌人位置
+    this.enemies.forEach(enemy => {
+      if (this.orientation === 'portrait') {
+        // 竖屏：敌人从上往下移动
+        enemy.y += enemy.speed;
+      } else {
+        // 横屏：敌人从右往左移动
+        enemy.x -= enemy.speed;
       }
+    });
+
+    // 移除超出屏幕的敌人（未被击中）
+    const initialEnemyCount = this.enemies.length;
+    this.enemies = this.enemies.filter(enemy => {
+      const isOutOfBounds = this.orientation === 'portrait' 
+        ? enemy.y > this.canvas.height + enemy.size  // 竖屏：y超过屏幕底部
+        : enemy.x < -enemy.size;  // 横屏：x小于屏幕左侧
       
-      // Move enemy up
-      enemy.y -= enemy.speed;
-      
-      // Remove if off screen (missed)
-      if (enemy.y < -50) {
-        this.enemies.splice(i, 1);
-        
-        // Lose combo if missed a non-bomb enemy
+      if (isOutOfBounds) {
+        // 敌人逃脱，扣血（炸弹除外）
         if (enemy.type !== 'bomb') {
-          this.combo = 0;
-          this.config.onComboUpdate(this.combo);
+          this.loseLife();
+          console.log(`Enemy escaped! Lives: ${this.lives}`);
+        }
+        return false;
+      }
+      return true;
+    });
+
+    // 清理过期的轨迹点
+    const trailCutoffTime = now - 500;
+    this.swipeTrail = this.swipeTrail.filter(point => point.time > trailCutoffTime);
+  }
+
+  private spawnEnemy(type?: Enemy['type']): void {
+    // 如果没有指定类型，随机选择
+    if (!type) {
+      const types: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb'];
+      const weights = [25, 25, 15, 15, 15, 5]; // 权重
+      const totalWeight = weights.reduce((a, b) => a + b, 0);
+      let random = Math.random() * totalWeight;
+      
+      for (let i = 0; i < types.length; i++) {
+        random -= weights[i];
+        if (random <= 0) {
+          type = types[i];
+          break;
         }
       }
     }
     
-    // Update slash trails
-    for (let i = this.slashTrails.length - 1; i >= 0; i--) {
-      const trail = this.slashTrails[i];
-      const age = now - trail.points[0].time;
-      if (age > 500) {
-        this.slashTrails.splice(i, 1);
-      }
-    }
-  }
-  
-  private render() {
-    // Clear canvas
-    this.ctx.fillStyle = '#1a0f1f';
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    const enemyType = type!;
     
-    // Draw enemies
-    for (const enemy of this.enemies) {
-      this.drawEnemy(enemy);
-    }
+    // 根据类型设置大小和速度
+    let size = 40;
+    let speed = 2;
+    let color = '#ff0000';
     
-    // Draw slash trails
-    for (const trail of this.slashTrails) {
-      this.drawSlashTrail(trail);
-    }
-    
-    // Draw current trail
-    if (this.currentTrail.length > 1) {
-      this.drawSlashTrail({ points: this.currentTrail, color: '#ff3366' });
-    }
-  }
-  
-  private drawEnemy(enemy: Enemy) {
-    this.ctx.save();
-    this.ctx.translate(enemy.x, enemy.y);
-    
-    if (enemy.isHit) {
-      // Hit animation
-      const progress = (Date.now() - (enemy.hitTime || 0)) / 300;
-      this.ctx.globalAlpha = 1 - progress;
-      this.ctx.scale(1 + progress, 1 + progress);
-    }
-    
-    // Draw enemy based on type
-    const size = enemy.size;
-    
-    switch (enemy.type) {
-      case 'vampire':
-        // Vampire (red)
-        this.ctx.fillStyle = '#cc0033';
-        this.ctx.fillRect(-size/2, -size/2, size, size);
-        this.ctx.fillStyle = '#ff3366';
-        this.ctx.fillRect(-size/3, -size/3, size*2/3, size*2/3);
-        break;
-        
+    switch (enemyType) {
       case 'bat_blue':
-        this.ctx.fillStyle = '#3366ff';
-        this.drawBat(size);
+        size = 40;
+        speed = 1.5;  // 降低速度，给玩家更多反应时间
+        color = '#00ffff';
         break;
-        
       case 'bat_purple':
-        this.ctx.fillStyle = '#9933ff';
-        this.drawBat(size);
+        size = 40;
+        speed = 1.5;
+        color = '#ff00ff';
         break;
-        
       case 'bat_red':
-        this.ctx.fillStyle = '#ff3333';
-        this.drawBat(size);
+        size = 40;
+        speed = 2.0;
+        color = '#ff0000';
         break;
-        
       case 'bat_yellow':
-        this.ctx.fillStyle = '#ffcc33';
-        this.drawBat(size);
+        size = 40;
+        speed = 2.0;
+        color = '#ffff00';
         break;
-        
+      case 'vampire':
+        size = 60;
+        speed = 1.0;  // BOSS移动较慢
+        color = '#ffd700';
+        break;
       case 'bomb':
-        // Bomb (black with red warning)
-        this.ctx.fillStyle = '#330000';
-        this.ctx.beginPath();
-        this.ctx.arc(0, 0, size/2, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.fillStyle = '#ff0000';
-        this.ctx.font = `${size/2}px Arial`;
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText('💣', 0, 0);
+        size = 45;
+        speed = 1.5;
+        color = '#ff0000';
         break;
     }
     
-    this.ctx.restore();
-  }
-  
-  private drawBat(size: number) {
-    // Simple bat shape
-    this.ctx.beginPath();
-    this.ctx.moveTo(-size/2, 0);
-    this.ctx.lineTo(-size/4, -size/3);
-    this.ctx.lineTo(0, -size/4);
-    this.ctx.lineTo(size/4, -size/3);
-    this.ctx.lineTo(size/2, 0);
-    this.ctx.lineTo(size/4, size/4);
-    this.ctx.lineTo(0, size/3);
-    this.ctx.lineTo(-size/4, size/4);
-    this.ctx.closePath();
-    this.ctx.fill();
-  }
-  
-  private drawSlashTrail(trail: SlashTrail) {
-    if (trail.points.length < 2) return;
-    
-    const now = Date.now();
-    const age = now - trail.points[0].time;
-    const alpha = Math.max(0, 1 - age / 500);
-    
-    this.ctx.save();
-    this.ctx.strokeStyle = trail.color;
-    this.ctx.lineWidth = 3;
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
-    this.ctx.globalAlpha = alpha;
-    this.ctx.shadowBlur = 10;
-    this.ctx.shadowColor = trail.color;
-    
-    this.ctx.beginPath();
-    this.ctx.moveTo(trail.points[0].x, trail.points[0].y);
-    
-    for (let i = 1; i < trail.points.length; i++) {
-      this.ctx.lineTo(trail.points[i].x, trail.points[i].y);
+    // 根据屏幕方向设置初始位置
+    let x, y;
+    if (this.orientation === 'portrait') {
+      // 竖屏：从顶部随机位置生成
+      x = Math.random() * (this.canvas.width - size * 2) + size;
+      y = -size;
+    } else {
+      // 横屏：从右侧随机位置生成
+      x = this.canvas.width + size;
+      y = Math.random() * (this.canvas.height - size * 2) + size;
     }
     
-    this.ctx.stroke();
-    this.ctx.restore();
+    const enemy: Enemy = {
+      id: this.nextEnemyId++,
+      type: enemyType,
+      x,
+      y,
+      speed,
+      size,
+      color,
+      image: this.enemyImages.get(enemyType),
+    };
+    
+    this.enemies.push(enemy);
   }
-  
-  private gameLoop = (timestamp: number) => {
-    if (!this.isRunning) return;
+
+  public handleSwipe(x: number, y: number): void {
+    if (this.isPaused || this.isGameOver) return;
+
+    // 添加到轨迹
+    this.swipeTrail.push({ x, y, time: Date.now() });
     
-    const deltaTime = 16; // Assume 60fps
-    this.update(deltaTime);
-    this.render();
+    // 限制轨迹长度
+    if (this.swipeTrail.length > this.trailMaxLength) {
+      this.swipeTrail.shift();
+    }
+
+    // 检测与敌人的碰撞
+    this.enemies = this.enemies.filter(enemy => {
+      const distance = Math.sqrt((x - enemy.x) ** 2 + (y - enemy.y) ** 2);
+      
+      if (distance < enemy.size) {
+        // 击中敌人
+        if (enemy.type === 'bomb') {
+          // 击中炸弹，扣血
+          this.loseLife();
+          this.combo = 0;
+          this.onComboChange?.(this.combo);
+        } else {
+          // 击中普通敌人，加分
+          this.addScore(enemy.type);
+        }
+        return false; // 移除敌人
+      }
+      return true;
+    });
+  }
+
+  private addScore(enemyType: Enemy['type']): void {
+    let points = 10;
     
-    this.animationFrameId = requestAnimationFrame(this.gameLoop);
-  };
-  
-  public start() {
-    this.isRunning = true;
-    this.isPaused = false;
-    this.score = 0;
+    switch (enemyType) {
+      case 'bat_blue':
+      case 'bat_purple':
+        points = 10;
+        break;
+      case 'bat_red':
+      case 'bat_yellow':
+        points = 20;
+        break;
+      case 'vampire':
+        points = 50;
+        break;
+    }
+    
+    this.combo++;
+    this.score += points * (1 + this.combo * 0.1);
+    
+    this.onScoreChange?.(Math.floor(this.score));
+    this.onComboChange?.(this.combo);
+  }
+
+  private loseLife(): void {
+    this.lives--;
     this.combo = 0;
-    this.health = 3;
-    this.enemies = [];
-    this.slashTrails = [];
-    this.lastSpawnTime = Date.now();
+    this.onLivesChange?.(this.lives);
+    this.onComboChange?.(this.combo);
     
-    // 重置谱面
-    if (this.chartData) {
-      this.upcomingNotes = [...this.chartData.notes];
-      this.noteIndex = 0;
+    if (this.lives <= 0) {
+      this.gameOver();
     }
-    
-    // 播放音乐
-    if (this.audioManager) {
-      this.audioManager.play();
-    }
-    
-    this.config.onScoreUpdate(this.score);
-    this.config.onComboUpdate(this.combo);
-    this.config.onHealthUpdate(this.health);
-    
-    this.gameLoop(0);
   }
-  
-  public pause() {
+
+  private gameOver(): void {
+    this.isGameOver = true;
     this.isPaused = true;
     if (this.audioManager) {
       this.audioManager.pause();
     }
+    this.onGameOver?.();
   }
-  
-  public resume() {
-    this.isPaused = false;
-    this.lastSpawnTime = Date.now();
-    if (this.audioManager) {
-      this.audioManager.play();
-    }
-  }
-  
-  public gameOver() {
-    this.isRunning = false;
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
-    }
-    if (this.audioManager) {
-      this.audioManager.stop();
-    }
-    this.config.onGameOver();
-  }
-  
-  public destroy() {
-    this.isRunning = false;
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
+
+  public render(): void {
+    // 清空画布
+    this.ctx.fillStyle = '#0a0a0a';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    // 绘制背景
+    if (this.backgroundImage && this.backgroundImage.complete) {
+      // 根据屏幕方向调整背景
+      if (this.orientation === 'portrait') {
+        // 竖屏：旋转背景90度
+        this.ctx.save();
+        this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.rotate(Math.PI / 2);
+        this.ctx.drawImage(
+          this.backgroundImage,
+          -this.canvas.height / 2,
+          -this.canvas.width / 2,
+          this.canvas.height,
+          this.canvas.width
+        );
+        this.ctx.restore();
+      } else {
+        // 横屏：正常绘制
+        const scale = Math.max(
+          this.canvas.width / this.backgroundImage.width,
+          this.canvas.height / this.backgroundImage.height
+        );
+        const scaledWidth = this.backgroundImage.width * scale;
+        const scaledHeight = this.backgroundImage.height * scale;
+        const x = (this.canvas.width - scaledWidth) / 2;
+        const y = (this.canvas.height - scaledHeight) / 2;
+        this.ctx.drawImage(this.backgroundImage, x, y, scaledWidth, scaledHeight);
+      }
     }
     
-    if (this.audioManager) {
-      this.audioManager.destroy();
+    // 绘制玩家
+    if (this.player.image && this.player.image.complete) {
+      this.ctx.save();
+      
+      if (this.orientation === 'portrait') {
+        // 竖屏：玩家朝上
+        this.ctx.translate(this.player.x, this.player.y);
+        this.ctx.rotate(-Math.PI / 2);
+        this.ctx.drawImage(
+          this.player.image,
+          -this.player.width / 2,
+          -this.player.height / 2,
+          this.player.width,
+          this.player.height
+        );
+      } else {
+        // 横屏：玩家朝右
+        this.ctx.drawImage(
+          this.player.image,
+          this.player.x - this.player.width / 2,
+          this.player.y - this.player.height / 2,
+          this.player.width,
+          this.player.height
+        );
+      }
+      
+      this.ctx.restore();
+    } else {
+      // 备用：绘制简单矩形
+      this.ctx.fillStyle = '#00ff00';
+      this.ctx.fillRect(
+        this.player.x - this.player.width / 2,
+        this.player.y - this.player.height / 2,
+        this.player.width,
+        this.player.height
+      );
     }
-    
-    this.soundEffects.destroy();
-    
-    // Remove event listeners
-    this.canvas.removeEventListener('mousedown', this.handlePointerDown);
-    this.canvas.removeEventListener('mousemove', this.handlePointerMove);
-    this.canvas.removeEventListener('mouseup', this.handlePointerUp);
-    this.canvas.removeEventListener('touchstart', this.handleTouchStart);
-    this.canvas.removeEventListener('touchmove', this.handleTouchMove);
-    this.canvas.removeEventListener('touchend', this.handleTouchEnd);
+
+    // 绘制敌人
+    this.enemies.forEach(enemy => {
+      if (enemy.image && enemy.image.complete) {
+        // 绘制精灵图
+        this.ctx.save();
+        
+        if (this.orientation === 'portrait') {
+          // 竖屏：敌人朝下
+          this.ctx.translate(enemy.x, enemy.y);
+          this.ctx.rotate(Math.PI / 2);
+          this.ctx.drawImage(
+            enemy.image,
+            -enemy.size,
+            -enemy.size,
+            enemy.size * 2,
+            enemy.size * 2
+          );
+        } else {
+          // 横屏：敌人朝左
+          this.ctx.drawImage(
+            enemy.image,
+            enemy.x - enemy.size,
+            enemy.y - enemy.size,
+            enemy.size * 2,
+            enemy.size * 2
+          );
+        }
+        
+        this.ctx.restore();
+      } else {
+        // 备用：绘制发光圆形
+        const gradient = this.ctx.createRadialGradient(enemy.x, enemy.y, 0, enemy.x, enemy.y, enemy.size);
+        gradient.addColorStop(0, enemy.color);
+        gradient.addColorStop(0.5, enemy.color + '80');
+        gradient.addColorStop(1, enemy.color + '00');
+        
+        this.ctx.fillStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(enemy.x, enemy.y, enemy.size, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
+    });
+
+    // 绘制切削轨迹
+    if (this.swipeTrail.length > 1) {
+      const gradient = this.ctx.createLinearGradient(
+        this.swipeTrail[0].x,
+        this.swipeTrail[0].y,
+        this.swipeTrail[this.swipeTrail.length - 1].x,
+        this.swipeTrail[this.swipeTrail.length - 1].y
+      );
+      gradient.addColorStop(0, '#ff000000');
+      gradient.addColorStop(1, '#ff0000ff');
+      
+      this.ctx.strokeStyle = gradient;
+      this.ctx.lineWidth = 5;
+      this.ctx.lineCap = 'round';
+      this.ctx.lineJoin = 'round';
+      this.ctx.shadowColor = '#ff0000';
+      this.ctx.shadowBlur = 10;
+      
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.swipeTrail[0].x, this.swipeTrail[0].y);
+      for (let i = 1; i < this.swipeTrail.length; i++) {
+        this.ctx.lineTo(this.swipeTrail[i].x, this.swipeTrail[i].y);
+      }
+      this.ctx.stroke();
+      
+      this.ctx.shadowBlur = 0;
+    }
+  }
+
+  public getScore(): number {
+    return Math.floor(this.score);
+  }
+
+  public getCombo(): number {
+    return this.combo;
+  }
+
+  public getLives(): number {
+    return this.lives;
+  }
+
+  public getIsGameOver(): boolean {
+    return this.isGameOver;
+  }
+  
+  public getOrientation(): GameOrientation {
+    return this.orientation;
   }
 }
