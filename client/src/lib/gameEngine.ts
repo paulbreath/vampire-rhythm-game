@@ -17,6 +17,9 @@ export interface Enemy {
 export interface Player {
   x: number;
   y: number;
+  targetX?: number; // 目标X坐标，用于平滑移动
+  targetY?: number; // 目标Y坐标，用于平滑移动
+  rotation?: number; // 角色旋转角度（弧度），剑锋指向鼠标
   width: number;
   height: number;
   image?: HTMLImageElement; // 玩家精灵图
@@ -62,8 +65,8 @@ export class GameEngine {
   private chartData: ChartData | null = null;
   private upcomingNotes: Array<{ time: number; type: Enemy['type'] }> = [];
   
-  // 屏幕方向
-  private orientation: GameOrientation = 'portrait';
+  // 只支持横屏模式，简化MVP
+  // private orientation: GameOrientation = 'portrait';
   
   // 背景图片
   private backgroundImage: HTMLImageElement | null = null;
@@ -87,12 +90,14 @@ export class GameEngine {
     }
     this.ctx = context;
     
-    // 初始化玩家位置（根据屏幕方向）
+    // 初始化玩家位置（只支持横屏）
     this.player = this.initializePlayer();
     
-    // 检测屏幕方向
-    this.detectOrientation();
-    window.addEventListener('resize', () => this.handleResize());
+    // 监听窗口大小变化
+    window.addEventListener('resize', () => {
+      this.resizeCanvas();
+      this.player = this.initializePlayer(); // 重新计算玩家位置
+    });
     
     // 设置画布大小
     this.resizeCanvas();
@@ -101,24 +106,7 @@ export class GameEngine {
     this.loadAssets();
   }
   
-  private detectOrientation(): void {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    this.orientation = width > height ? 'landscape' : 'portrait';
-    console.log(`Screen orientation: ${this.orientation} (${width}x${height})`);
-  }
-  
-  private handleResize(): void {
-    const oldOrientation = this.orientation;
-    this.detectOrientation();
-    this.resizeCanvas();
-    
-    // 如果方向改变，重新初始化玩家位置
-    if (oldOrientation !== this.orientation) {
-      this.player = this.initializePlayer();
-      console.log(`Orientation changed to ${this.orientation}, player repositioned`);
-    }
-  }
+  // 已移除orientation检测，只支持横屏模式
   
   private initializePlayer(): Player {
     const width = this.canvas.width || window.innerWidth;
@@ -129,29 +117,21 @@ export class GameEngine {
     const oldIdleAnimation = this.player?.idleAnimation || 0;
     const oldAttackAnimation = this.player?.attackAnimation;
     
-    if (this.orientation === 'portrait') {
-      // 竖屏：玩家在底部
-      return {
-        x: width / 2,
-        y: height - 100,
-        width: 80,
-        height: 120,
-        idleAnimation: oldIdleAnimation,
-        attackAnimation: oldAttackAnimation,
-        image: oldImage,
-      };
-    } else {
-      // 横屏：玩家站在教堂地毯上（大约在屏幕高度75%位置）
-      return {
-        x: 150,
-        y: height * 0.75,  // 站在地毯上，视觉上更合理
-        width: 80,
-        height: 120,
-        idleAnimation: oldIdleAnimation,
-        attackAnimation: oldAttackAnimation,
-        image: oldImage,
-      };
-    }
+    // 只支持横屏模式：玩家站在教堂地毯上
+    const initialX = 150;
+    const initialY = height * 0.75;
+    return {
+      x: initialX,
+      y: initialY,
+      targetX: initialX,  // 初始目标位置
+      targetY: initialY,
+      rotation: 0,  // 初始朝向右
+      width: 80,
+      height: 120,
+      idleAnimation: oldIdleAnimation,
+      attackAnimation: oldAttackAnimation,
+      image: oldImage,
+    };
   }
   
   private async loadAssets(): Promise<void> {
@@ -193,8 +173,22 @@ export class GameEngine {
   }
 
   private resizeCanvas(): void {
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
+    // 使用16:9比例，适配大多数屏幕
+    const aspectRatio = 16 / 9;
+    const maxWidth = window.innerWidth;
+    const maxHeight = window.innerHeight - 100; // 减去顶部状态栏高度
+    
+    if (maxWidth / maxHeight > aspectRatio) {
+      // 窗口更宽，以高度为准
+      this.canvas.height = maxHeight;
+      this.canvas.width = maxHeight * aspectRatio;
+    } else {
+      // 窗口更高，以宽度为准
+      this.canvas.width = maxWidth;
+      this.canvas.height = maxWidth / aspectRatio;
+    }
+    
+    console.log(`Canvas resized to ${this.canvas.width}x${this.canvas.height}`);
   }
 
   public setCallbacks(callbacks: {
@@ -328,15 +322,10 @@ export class GameEngine {
       }
     }
 
-    // 更新敌人位置和动画
+    // 更新敌人位置和动画（只支持横屏）
     this.enemies.forEach(enemy => {
-      if (this.orientation === 'portrait') {
-        // 竖屏：敌人从上往下移动
-        enemy.y += enemy.speed;
-      } else {
-        // 横屏：敌人从右往左移动
-        enemy.x -= enemy.speed;
-      }
+      // 横屏：敌人从右往左移动
+      enemy.x -= enemy.speed;
       
       // 更新飞行动画
       enemy.animationOffset += 0.1;
@@ -346,6 +335,17 @@ export class GameEngine {
         enemy.hitAnimation--;
       }
     });
+    
+    // 平滑移动玩家到目标位置
+    if (this.player.targetX !== undefined && this.player.targetY !== undefined) {
+      const speed = 0.15; // 插值系数，越大越快
+      this.player.x += (this.player.targetX - this.player.x) * speed;
+      this.player.y += (this.player.targetY - this.player.y) * speed;
+      
+      // 边界限制，确保角色不会移出画布
+      this.player.x = Math.max(this.player.width / 2, Math.min(this.canvas.width - this.player.width / 2, this.player.x));
+      this.player.y = Math.max(this.player.height / 2, Math.min(this.canvas.height - this.player.height / 2, this.player.y));
+    }
     
     // 更新玩家待机动画
     this.player.idleAnimation += 0.05;
@@ -375,9 +375,8 @@ export class GameEngine {
     // 移除超出屏幕的敌人（未被击中）
     const initialEnemyCount = this.enemies.length;
     this.enemies = this.enemies.filter(enemy => {
-      const isOutOfBounds = this.orientation === 'portrait' 
-        ? enemy.y > this.canvas.height + enemy.size  // 竖屏：y超过屏幕底部
-        : enemy.x < -enemy.size;  // 横屏：x小于屏幕左侧
+      // 只支持横屏：敌人从x负值处离开屏幕
+      const isOutOfBounds = enemy.x < -enemy.size;
       
       if (isOutOfBounds) {
         // 敌人逃脱，扣血（炸弹除外）
@@ -462,17 +461,9 @@ export class GameEngine {
         break;
     }
     
-    // 根据屏幕方向设置初始位置
-    let x, y;
-    if (this.orientation === 'portrait') {
-      // 竖屏：从顶部随机位置生成
-      x = Math.random() * (this.canvas.width - size * 2) + size;
-      y = -size;
-    } else {
-      // 横屏：从右侧随机位置生成
-      x = this.canvas.width + size;
-      y = Math.random() * (this.canvas.height - size * 2) + size;
-    }
+    // 只支持横屏：从右侧随机位置生成
+    const x = this.canvas.width + size;
+    const y = Math.random() * (this.canvas.height - size * 2) + size;
     
     const enemy: Enemy = {
       id: this.nextEnemyId++,
@@ -491,6 +482,15 @@ export class GameEngine {
 
   public handleSwipe(x: number, y: number): void {
     if (this.isPaused || this.isGameOver) return;
+
+    // 角色跟随鼠标/手指移动
+    this.player.targetX = x;
+    this.player.targetY = y;
+    
+    // 计算角色旋转角度（剑锋指向鼠标）
+    const dx = x - this.player.x;
+    const dy = y - this.player.y;
+    this.player.rotation = Math.atan2(dy, dx);
 
     // 添加到轨迹
     this.swipeTrail.push({ x, y, time: Date.now() });
@@ -603,34 +603,17 @@ export class GameEngine {
     this.ctx.fillStyle = '#0a0a0a';
     this.ctx.fillRect(-this.screenShake.x, -this.screenShake.y, this.canvas.width, this.canvas.height);
     
-    // 绘制背景
+    // 绘制背景（只支持横屏）
     if (this.backgroundImage && this.backgroundImage.complete) {
-      // 根据屏幕方向调整背景
-      if (this.orientation === 'portrait') {
-        // 竖屏：旋转背景90度
-        this.ctx.save();
-        this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
-        this.ctx.rotate(Math.PI / 2);
-        this.ctx.drawImage(
-          this.backgroundImage,
-          -this.canvas.height / 2,
-          -this.canvas.width / 2,
-          this.canvas.height,
-          this.canvas.width
-        );
-        this.ctx.restore();
-      } else {
-        // 横屏：正常绘制
-        const scale = Math.max(
-          this.canvas.width / this.backgroundImage.width,
-          this.canvas.height / this.backgroundImage.height
-        );
-        const scaledWidth = this.backgroundImage.width * scale;
-        const scaledHeight = this.backgroundImage.height * scale;
-        const x = (this.canvas.width - scaledWidth) / 2;
-        const y = (this.canvas.height - scaledHeight) / 2;
-        this.ctx.drawImage(this.backgroundImage, x, y, scaledWidth, scaledHeight);
-      }
+      const scale = Math.max(
+        this.canvas.width / this.backgroundImage.width,
+        this.canvas.height / this.backgroundImage.height
+      );
+      const scaledWidth = this.backgroundImage.width * scale;
+      const scaledHeight = this.backgroundImage.height * scale;
+      const x = (this.canvas.width - scaledWidth) / 2;
+      const y = (this.canvas.height - scaledHeight) / 2;
+      this.ctx.drawImage(this.backgroundImage, x, y, scaledWidth, scaledHeight);
     }
     
     // 绘制玩家
@@ -646,30 +629,22 @@ export class GameEngine {
         attackScale = 1.0 + (this.player.attackAnimation / 10) * 0.2;
       }
       
-      if (this.orientation === 'portrait') {
-        // 竖屏：玩家朝上
-        this.ctx.translate(this.player.x, this.player.y + idleOffset);
-        this.ctx.rotate(-Math.PI / 2);
-        this.ctx.scale(attackScale, attackScale);
-        this.ctx.drawImage(
-          this.player.image,
-          -this.player.width / 2,
-          -this.player.height / 2,
-          this.player.width,
-          this.player.height
-        );
-      } else {
-        // 横屏：玩家朝右
-        this.ctx.translate(this.player.x, this.player.y + idleOffset);
-        this.ctx.scale(attackScale, attackScale);
-        this.ctx.drawImage(
-          this.player.image,
-          -this.player.width / 2,
-          -this.player.height / 2,
-          this.player.width,
-          this.player.height
-        );
+      // 只支持横屏：玩家跟随鼠标旋转
+      this.ctx.translate(this.player.x, this.player.y + idleOffset);
+      
+      // 应用旋转（剑锋指向鼠标）
+      if (this.player.rotation !== undefined) {
+        this.ctx.rotate(this.player.rotation);
       }
+      
+      this.ctx.scale(attackScale, attackScale);
+      this.ctx.drawImage(
+        this.player.image,
+        -this.player.width / 2,
+        -this.player.height / 2,
+        this.player.width,
+        this.player.height
+      );
       
       this.ctx.restore();
     } else {
@@ -702,31 +677,17 @@ export class GameEngine {
         this.ctx.save();
         this.ctx.globalAlpha = hitAlpha;
         
-        if (this.orientation === 'portrait') {
-          // 竖屏：敌人朝下
-          this.ctx.translate(enemy.x + flyOffset, enemy.y);
-          this.ctx.rotate(Math.PI / 2 + flyRotation);
-          this.ctx.scale(hitScale, hitScale);
-          this.ctx.drawImage(
-            enemy.image,
-            -enemy.size,
-            -enemy.size,
-            enemy.size * 2,
-            enemy.size * 2
-          );
-        } else {
-          // 横屏：敌人朝左
-          this.ctx.translate(enemy.x, enemy.y + flyOffset);
-          this.ctx.rotate(flyRotation);
-          this.ctx.scale(hitScale, hitScale);
-          this.ctx.drawImage(
-            enemy.image,
-            -enemy.size,
-            -enemy.size,
-            enemy.size * 2,
-            enemy.size * 2
-          );
-        }
+        // 只支持横屏：敌人朝左
+        this.ctx.translate(enemy.x, enemy.y + flyOffset);
+        this.ctx.rotate(flyRotation);
+        this.ctx.scale(hitScale, hitScale);
+        this.ctx.drawImage(
+          enemy.image,
+          -enemy.size,
+          -enemy.size,
+          enemy.size * 2,
+          enemy.size * 2
+        );
         
         this.ctx.restore();
       } else {
@@ -799,7 +760,5 @@ export class GameEngine {
     return this.isGameOver;
   }
   
-  public getOrientation(): GameOrientation {
-    return this.orientation;
-  }
+  // getOrientation已移除，只支持横屏模式
 }

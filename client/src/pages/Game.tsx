@@ -222,7 +222,7 @@ export default function Game() {
         <canvas
           ref={canvasRef}
           className="border-4 border-border rounded-lg shadow-2xl touch-none"
-          style={{ maxWidth: '100%', maxHeight: '100%', width: '100vw', height: '100vh' }}
+          style={{ maxWidth: '100%', maxHeight: '100%', display: 'block' }}
         />
 
         {/* Game Over Overlay */}
