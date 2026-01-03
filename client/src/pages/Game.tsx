@@ -6,11 +6,13 @@ import { AudioManager } from "@/lib/audioManager";
 import { ChartLoader } from "@/lib/chartLoader";
 import { toast } from "sonner";
 import { getSongById, SONGS } from "@/data/songs";
+import { SoundEffectsManager } from "@/lib/soundEffects";
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
   const audioManagerRef = useRef<AudioManager | null>(null);
+  const soundEffectsRef = useRef<SoundEffectsManager | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const [, setLocation] = useLocation();
   const [score, setScore] = useState(0);
@@ -28,8 +30,13 @@ export default function Game() {
     const songId = urlParams.get('song') || SONGS[0].id;
     const currentSong = getSongById(songId) || SONGS[0];
 
+    // Initialize sound effects
+    const soundEffects = new SoundEffectsManager();
+    soundEffectsRef.current = soundEffects;
+
     // Initialize game engine
     const engine = new GameEngine(canvasRef.current);
+    engine.setSoundEffects(soundEffects);
     
     // Set callbacks
     engine.setCallbacks({
@@ -37,6 +44,7 @@ export default function Game() {
       onComboChange: setCombo,
       onLivesChange: setHealth,
       onGameOver: () => {
+        soundEffects.playGameOver();
         setIsGameOver(true);
         setIsPlaying(false);
       }
@@ -131,6 +139,7 @@ export default function Game() {
     }
     
     gameEngineRef.current.start();
+    soundEffectsRef.current?.playGameStart();
     setIsPlaying(true);
     setIsGameOver(false);
     setScore(0);
@@ -141,6 +150,7 @@ export default function Game() {
   const handlePause = () => {
     if (gameEngineRef.current) {
       gameEngineRef.current.pause();
+      soundEffectsRef.current?.playPause();
       setIsPlaying(false);
     }
   };

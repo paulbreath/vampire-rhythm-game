@@ -74,6 +74,9 @@ export class GameEngine {
   // 敌人精灵图
   private enemyImages: Map<Enemy['type'], HTMLImageElement> = new Map();
   
+  // 音效管理器
+  private soundEffects: any = null; // 将在Game.tsx中设置
+  
   // 回调函数
   private onScoreChange?: (score: number) => void;
   private onComboChange?: (combo: number) => void;
@@ -201,6 +204,10 @@ export class GameEngine {
     this.onComboChange = callbacks.onComboChange;
     this.onLivesChange = callbacks.onLivesChange;
     this.onGameOver = callbacks.onGameOver;
+  }
+  
+  public setSoundEffects(soundEffects: any): void {
+    this.soundEffects = soundEffects;
   }
   
   public setAudioManager(audioManager: AudioManager): void {
@@ -570,6 +577,12 @@ export class GameEngine {
     this.combo++;
     this.score += points * (1 + this.combo * 0.1);
     
+    // 播放音效
+    this.soundEffects?.playHit();
+    if (this.combo >= 5) {
+      this.soundEffects?.playCombo(this.combo);
+    }
+    
     this.onScoreChange?.(Math.floor(this.score));
     this.onComboChange?.(this.combo);
   }
@@ -577,6 +590,7 @@ export class GameEngine {
   private loseLife(): void {
     this.lives--;
     this.combo = 0;
+    this.soundEffects?.playMiss();
     this.onLivesChange?.(this.lives);
     this.onComboChange?.(this.combo);
     
