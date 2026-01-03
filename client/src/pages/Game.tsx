@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { GameEngine } from "@/lib/gameEngine";
+import { AudioManager } from "@/lib/audioManager";
+import { ChartLoader } from "@/lib/chartLoader";
+import { toast } from "sonner";
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,6 +31,28 @@ export default function Game() {
     });
 
     gameEngineRef.current = engine;
+
+    // Load audio and chart
+    const loadAudioAndChart = async () => {
+      try {
+        // Load audio
+        const audioManager = new AudioManager();
+        await audioManager.loadAudio('/audio/test-song.wav');
+        
+        // Load chart
+        const chartData = await ChartLoader.loadFromURL('/charts/test-song.json');
+        
+        // Set audio and chart to game engine
+        engine.setAudioAndChart(audioManager, chartData);
+        
+        toast.success('Audio and chart loaded!');
+      } catch (error) {
+        console.error('Failed to load audio/chart:', error);
+        toast.error('Failed to load audio or chart');
+      }
+    };
+
+    loadAudioAndChart();
 
     return () => {
       engine.destroy();

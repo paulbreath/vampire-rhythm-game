@@ -1,0 +1,76 @@
+{
+  "metadata": {
+    "title": "Vampire Hunt",
+    "artist": "Test Artist",
+    "bpm": 140,
+    "duration": 30,
+    "difficulty": "normal"
+  },
+  "notes": [
+    { "time": 2.0, "type": "bat_blue", "intensity": 0.5 },
+    { "time": 2.4, "type": "bat_purple", "intensity": 0.6 },
+    { "time": 2.8, "type": "bat_red", "intensity": 0.7 },
+    { "time": 3.2, "type": "bat_yellow", "intensity": 0.5 },
+    
+    { "time": 4.0, "type": "vampire", "intensity": 0.9 },
+    { "time": 4.5, "type": "bat_blue", "intensity": 0.4 },
+    { "time": 5.0, "type": "bat_purple", "intensity": 0.5 },
+    
+    { "time": 6.0, "type": "bat_red", "intensity": 0.6 },
+    { "time": 6.3, "type": "bat_yellow", "intensity": 0.5 },
+    { "time": 6.6, "type": "bat_blue", "intensity": 0.4 },
+    { "time": 6.9, "type": "bat_purple", "intensity": 0.5 },
+    
+    { "time": 8.0, "type": "vampire", "intensity": 0.9 },
+    { "time": 8.5, "type": "bomb", "intensity": 0.3 },
+    { "time": 9.0, "type": "bat_red", "intensity": 0.6 },
+    
+    { "time": 10.0, "type": "bat_blue", "intensity": 0.5 },
+    { "time": 10.3, "type": "bat_purple", "intensity": 0.6 },
+    { "time": 10.6, "type": "bat_yellow", "intensity": 0.5 },
+    { "time": 10.9, "type": "bat_red", "intensity": 0.7 },
+    
+    { "time": 12.0, "type": "vampire", "intensity": 0.9 },
+    { "time": 12.5, "type": "bat_blue", "intensity": 0.4 },
+    { "time": 13.0, "type": "bat_purple", "intensity": 0.5 },
+    { "time": 13.5, "type": "bomb", "intensity": 0.3 },
+    
+    { "time": 14.0, "type": "bat_red", "intensity": 0.6 },
+    { "time": 14.3, "type": "bat_yellow", "intensity": 0.5 },
+    { "time": 14.6, "type": "bat_blue", "intensity": 0.4 },
+    { "time": 14.9, "type": "bat_purple", "intensity": 0.5 },
+    
+    { "time": 16.0, "type": "vampire", "intensity": 0.9 },
+    { "time": 16.4, "type": "bat_red", "intensity": 0.6 },
+    { "time": 16.8, "type": "bat_yellow", "intensity": 0.5 },
+    
+    { "time": 18.0, "type": "bat_blue", "intensity": 0.5 },
+    { "time": 18.3, "type": "bat_purple", "intensity": 0.6 },
+    { "time": 18.6, "type": "bat_red", "intensity": 0.7 },
+    { "time": 18.9, "type": "bat_yellow", "intensity": 0.5 },
+    
+    { "time": 20.0, "type": "vampire", "intensity": 0.9 },
+    { "time": 20.5, "type": "bomb", "intensity": 0.3 },
+    { "time": 21.0, "type": "bat_blue", "intensity": 0.4 },
+    { "time": 21.5, "type": "bat_purple", "intensity": 0.5 },
+    
+    { "time": 22.0, "type": "bat_red", "intensity": 0.6 },
+    { "time": 22.3, "type": "bat_yellow", "intensity": 0.5 },
+    { "time": 22.6, "type": "bat_blue", "intensity": 0.4 },
+    { "time": 22.9, "type": "bat_purple", "intensity": 0.5 },
+    
+    { "time": 24.0, "type": "vampire", "intensity": 0.9 },
+    { "time": 24.4, "type": "bat_red", "intensity": 0.6 },
+    { "time": 24.8, "type": "bat_yellow", "intensity": 0.5 },
+    
+    { "time": 26.0, "type": "bat_blue", "intensity": 0.5 },
+    { "time": 26.3, "type": "bat_purple", "intensity": 0.6 },
+    { "time": 26.6, "type": "bat_red", "intensity": 0.7 },
+    { "time": 26.9, "type": "bat_yellow", "intensity": 0.5 },
+    
+    { "time": 28.0, "type": "vampire", "intensity": 0.9 },
+    { "time": 28.5, "type": "bomb", "intensity": 0.3 },
+    { "time": 29.0, "type": "bat_blue", "intensity": 0.4 },
+    { "time": 29.5, "type": "bat_purple", "intensity": 0.5 }
+  ]
+}

@@ -1,3 +1,6 @@
+import { AudioManager, SoundEffectManager } from './audioManager';
+import { ChartData, ChartNote } from './chartLoader';
+
 /**
  * 游戏引擎核心类
  * 负责游戏循环、渲染、碰撞检测和音频同步
@@ -32,7 +35,13 @@ export class GameEngine {
   private ctx: CanvasRenderingContext2D;
   private config: GameConfig;
   
+  private audioManager: AudioManager | null = null;
+  private soundEffects: SoundEffectManager;
+  private chartData: ChartData | null = null;
+  
   private enemies: Enemy[] = [];
+  private upcomingNotes: ChartNote[] = [];
+  private noteIndex = 0;
   private slashTrails: SlashTrail[] = [];
   private animationFrameId: number | null = null;
   
@@ -55,7 +64,31 @@ export class GameEngine {
     this.ctx = ctx;
     this.config = config;
     
+    // 初始化音效管理器
+    this.soundEffects = new SoundEffectManager();
+    this.initSoundEffects();
+    
     this.setupEventListeners();
+  }
+  
+  /**
+   * 初始化音效
+   */
+  private initSoundEffects() {
+    // 生成简单的打击音效
+    this.soundEffects.addGeneratedSound('hit_bat', 800, 0.1);
+    this.soundEffects.addGeneratedSound('hit_vampire', 600, 0.15);
+    this.soundEffects.addGeneratedSound('hit_bomb', 200, 0.2);
+  }
+  
+  /**
+   * 设置音频和谱面
+   */
+  public setAudioAndChart(audioManager: AudioManager, chartData: ChartData) {
+    this.audioManager = audioManager;
+    this.chartData = chartData;
+    this.upcomingNotes = [...chartData.notes];
+    this.noteIndex = 0;
   }
   
   private setupEventListeners() {
@@ -146,6 +179,15 @@ export class GameEngine {
     enemy.isHit = true;
     enemy.hitTime = Date.now();
     
+    // 播放音效
+    if (enemy.type === 'bomb') {
+      this.soundEffects.play('hit_bomb', 0.5);
+    } else if (enemy.type === 'vampire') {
+      this.soundEffects.play('hit_vampire', 0.7);
+    } else {
+      this.soundEffects.play('hit_bat', 0.6);
+    }
+    
     if (enemy.type === 'bomb') {
       // Hit bomb - lose health and reset combo
       this.health = Math.max(0, this.health - 1);
@@ -170,20 +212,27 @@ export class GameEngine {
     }
   }
   
-  private spawnEnemy() {
-    const types: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb'];
-    const weights = [25, 20, 15, 15, 20, 5]; // Probability weights
+  private spawnEnemy(noteType?: Enemy['type']) {
+    let selectedType: Enemy['type'];
     
-    // Weighted random selection
-    const totalWeight = weights.reduce((a, b) => a + b, 0);
-    let random = Math.random() * totalWeight;
-    let selectedType: Enemy['type'] = 'bat_blue';
-    
-    for (let i = 0; i < types.length; i++) {
-      random -= weights[i];
-      if (random <= 0) {
-        selectedType = types[i];
-        break;
+    if (noteType) {
+      // 使用谱面指定的类型
+      selectedType = noteType;
+    } else {
+      // 随机生成（用于无谱面模式）
+      const types: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb'];
+      const weights = [25, 20, 15, 15, 20, 5];
+      
+      const totalWeight = weights.reduce((a, b) => a + b, 0);
+      let random = Math.random() * totalWeight;
+      selectedType = 'bat_blue';
+      
+      for (let i = 0; i < types.length; i++) {
+        random -= weights[i];
+        if (random <= 0) {
+          selectedType = types[i];
+          break;
+        }
       }
     }
     
@@ -204,11 +253,24 @@ export class GameEngine {
   private update(deltaTime: number) {
     if (this.isPaused) return;
     
-    // Spawn enemies
     const now = Date.now();
-    if (now - this.lastSpawnTime > this.spawnInterval) {
-      this.spawnEnemy();
-      this.lastSpawnTime = now;
+    
+    // 如果有谱面和音频，根据音乐时间生成敌人
+    if (this.audioManager && this.chartData && this.upcomingNotes.length > 0) {
+      const currentTime = this.audioManager.getCurrentTime();
+      const spawnLeadTime = 2.0; // 提前2秒生成敌人
+      
+      // 检查是否有需要生成的音符
+      while (this.upcomingNotes.length > 0 && this.upcomingNotes[0].time - currentTime <= spawnLeadTime) {
+        const note = this.upcomingNotes.shift()!;
+        this.spawnEnemy(note.type);
+      }
+    } else {
+      // 无谱面模式：随机生成
+      if (now - this.lastSpawnTime > this.spawnInterval) {
+        this.spawnEnemy();
+        this.lastSpawnTime = now;
+      }
     }
     
     // Update enemies
@@ -391,6 +453,17 @@ export class GameEngine {
     this.slashTrails = [];
     this.lastSpawnTime = Date.now();
     
+    // 重置谱面
+    if (this.chartData) {
+      this.upcomingNotes = [...this.chartData.notes];
+      this.noteIndex = 0;
+    }
+    
+    // 播放音乐
+    if (this.audioManager) {
+      this.audioManager.play();
+    }
+    
     this.config.onScoreUpdate(this.score);
     this.config.onComboUpdate(this.combo);
     this.config.onHealthUpdate(this.health);
@@ -400,17 +473,26 @@ export class GameEngine {
   
   public pause() {
     this.isPaused = true;
+    if (this.audioManager) {
+      this.audioManager.pause();
+    }
   }
   
   public resume() {
     this.isPaused = false;
-    this.lastSpawnTime = Date.now(); // Reset spawn timer
+    this.lastSpawnTime = Date.now();
+    if (this.audioManager) {
+      this.audioManager.play();
+    }
   }
   
   public gameOver() {
     this.isRunning = false;
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
+    }
+    if (this.audioManager) {
+      this.audioManager.stop();
     }
     this.config.onGameOver();
   }
@@ -420,6 +502,12 @@ export class GameEngine {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
+    
+    if (this.audioManager) {
+      this.audioManager.destroy();
+    }
+    
+    this.soundEffects.destroy();
     
     // Remove event listeners
     this.canvas.removeEventListener('mousedown', this.handlePointerDown);
