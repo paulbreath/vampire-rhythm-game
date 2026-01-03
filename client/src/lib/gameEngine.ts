@@ -10,6 +10,8 @@ export interface Enemy {
   size: number;
   color: string;
   image?: HTMLImageElement; // 敌人精灵图
+  animationOffset: number; // 动画偏移，用于飞行效果
+  hitAnimation?: number; // 受击动画计时器
 }
 
 export interface Player {
@@ -18,6 +20,19 @@ export interface Player {
   width: number;
   height: number;
   image?: HTMLImageElement; // 玩家精灵图
+  idleAnimation: number; // 待机动画计时器
+  attackAnimation?: number; // 放击动画计时器
+}
+
+export interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  color: string;
+  size: number;
 }
 
 export type GameOrientation = 'portrait' | 'landscape';
@@ -27,6 +42,8 @@ export class GameEngine {
   private ctx: CanvasRenderingContext2D;
   private enemies: Enemy[] = [];
   private player: Player;
+  private particles: Particle[] = []; // 粒子系统
+  private screenShake: { x: number; y: number; duration: number } = { x: 0, y: 0, duration: 0 }; // 屏幕震动
   private score: number = 0;
   private combo: number = 0;
   private lives: number = 3;
@@ -34,6 +51,7 @@ export class GameEngine {
   private isPaused: boolean = false;
   private isGameOver: boolean = false;
   private lastSpawnTime: number = 0;
+  private lastLoseLifeTime: number = 0; // 上次扣血时间，用于防止短时间内连续扣血
   private spawnInterval: number = 1000;
   private swipeTrail: { x: number; y: number; time: number }[] = [];
   private trailMaxLength: number = 20;
@@ -113,14 +131,16 @@ export class GameEngine {
         y: height - 100,
         width: 80,
         height: 120,
+        idleAnimation: 0,
       };
     } else {
-      // 横屏：玩家在左侧
+      // 横屏：玩家在地面上（屏幕底部）
       return {
         x: 150,
-        y: height / 2,
+        y: height - 80,  // 站在地面上，留出一些边距
         width: 80,
         height: 120,
+        idleAnimation: 0,
       };
     }
   }
@@ -262,11 +282,26 @@ export class GameEngine {
       if (currentTime >= -0.1) {  // 允许小的负值误差
         // 检查是否有需要生成的音符，限制每帧最多生成数量
         let spawnedCount = 0;
-        const maxSpawnPerFrame = 5; // 每帧最多生成5个敌人
+        const maxSpawnPerFrame = 3; // 每帧最多生成3个敌人，防止一次性生成太多
+        const maxTimeSpan = 0.2; // 每帧最多生成0.2秒范围内的敌人
+        let firstNoteTime: number | null = null;
+        
         while (this.upcomingNotes.length > 0 && 
                this.upcomingNotes[0].time - currentTime <= spawnLeadTime &&
                spawnedCount < maxSpawnPerFrame) {
-          const note = this.upcomingNotes.shift()!;
+          const note = this.upcomingNotes[0];
+          
+          // 如果是本帧第一个音符，记录时间
+          if (firstNoteTime === null) {
+            firstNoteTime = note.time;
+          }
+          
+          // 如果这个音符距离第一个音符太远，停止生成
+          if (note.time - firstNoteTime > maxTimeSpan) {
+            break;
+          }
+          
+          this.upcomingNotes.shift();
           this.spawnEnemy(note.type);
           spawnedCount++;
         }
@@ -283,7 +318,7 @@ export class GameEngine {
       }
     }
 
-    // 更新敌人位置
+    // 更新敌人位置和动画
     this.enemies.forEach(enemy => {
       if (this.orientation === 'portrait') {
         // 竖屏：敌人从上往下移动
@@ -292,7 +327,40 @@ export class GameEngine {
         // 横屏：敌人从右往左移动
         enemy.x -= enemy.speed;
       }
+      
+      // 更新飞行动画
+      enemy.animationOffset += 0.1;
+      
+      // 更新受击动画
+      if (enemy.hitAnimation !== undefined && enemy.hitAnimation > 0) {
+        enemy.hitAnimation--;
+      }
     });
+    
+    // 更新玩家待机动画
+    this.player.idleAnimation += 0.05;
+    if (this.player.attackAnimation !== undefined && this.player.attackAnimation > 0) {
+      this.player.attackAnimation--;
+    }
+    
+    // 更新粒子
+    this.particles = this.particles.filter(particle => {
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      particle.vy += 0.2; // 重力
+      particle.life--;
+      return particle.life > 0;
+    });
+    
+    // 更新屏幕震动
+    if (this.screenShake.duration > 0) {
+      this.screenShake.duration--;
+      this.screenShake.x = (Math.random() - 0.5) * 10;
+      this.screenShake.y = (Math.random() - 0.5) * 10;
+    } else {
+      this.screenShake.x = 0;
+      this.screenShake.y = 0;
+    }
 
     // 移除超出屏幕的敌人（未被击中）
     const initialEnemyCount = this.enemies.length;
@@ -304,13 +372,17 @@ export class GameEngine {
       if (isOutOfBounds) {
         // 敌人逃脱，扣血（炸弹除外）
         if (enemy.type !== 'bomb' && this.isGameStarted) {
-          // 给玩家5秒的grace period，让他们有时间熟悉游戏
+          // 给玩家15秒的grace period，让他们有足够时间熟悉游戏
           const currentTime = this.audioManager?.getCurrentTime() || 0;
-          if (currentTime > 5.0) {
+          const now = Date.now();
+          
+          // 只在grace period结束后且距离上次扣血至少500ms才扣血
+          if (currentTime > 15.0 && now - this.lastLoseLifeTime > 500) {
             this.loseLife();
+            this.lastLoseLifeTime = now;
             console.log(`Enemy escaped! Lives: ${this.lives}`);
-          } else {
-            console.log(`Enemy escaped during grace period (${currentTime.toFixed(1)}s/5.0s)`);
+          } else if (currentTime <= 15.0) {
+            console.log(`Enemy escaped during grace period (${currentTime.toFixed(1)}s/15.0s)`);
           }
         }
         return false;
@@ -401,6 +473,7 @@ export class GameEngine {
       size,
       color,
       image: this.enemyImages.get(enemyType),
+      animationOffset: Math.random() * Math.PI * 2, // 随机初始动画偏移，让敌人动画不同步
     };
     
     this.enemies.push(enemy);
@@ -428,14 +501,43 @@ export class GameEngine {
           this.loseLife();
           this.combo = 0;
           this.onComboChange?.(this.combo);
+          // 炸弹爆炸特效
+          this.createParticles(enemy.x, enemy.y, '#ff0000', 20);
+          this.triggerScreenShake(15);
         } else {
           // 击中普通敌人，加分
           this.addScore(enemy.type);
+          // 击中特效
+          this.createParticles(enemy.x, enemy.y, enemy.color, 10);
+          this.triggerScreenShake(5);
+          // 触发玩家攻击动画
+          this.player.attackAnimation = 10;
         }
         return false; // 移除敌人
       }
       return true;
     });
+  }
+
+  private createParticles(x: number, y: number, color: string, count: number): void {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 5 + 2;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 3, // 向上喷射
+        life: 30 + Math.random() * 20,
+        maxLife: 50,
+        color,
+        size: Math.random() * 4 + 2,
+      });
+    }
+  }
+  
+  private triggerScreenShake(duration: number): void {
+    this.screenShake.duration = Math.max(this.screenShake.duration, duration);
   }
 
   private addScore(enemyType: Enemy['type']): void {
@@ -483,9 +585,13 @@ export class GameEngine {
   }
 
   public render(): void {
+    // 应用屏幕震动
+    this.ctx.save();
+    this.ctx.translate(this.screenShake.x, this.screenShake.y);
+    
     // 清空画布
     this.ctx.fillStyle = '#0a0a0a';
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillRect(-this.screenShake.x, -this.screenShake.y, this.canvas.width, this.canvas.height);
     
     // 绘制背景
     if (this.backgroundImage && this.backgroundImage.complete) {
@@ -521,10 +627,20 @@ export class GameEngine {
     if (this.player.image && this.player.image.complete) {
       this.ctx.save();
       
+      // 待机动画：上下浮动
+      const idleOffset = Math.sin(this.player.idleAnimation) * 3;
+      
+      // 攻击动画：缩放效果
+      let attackScale = 1.0;
+      if (this.player.attackAnimation && this.player.attackAnimation > 0) {
+        attackScale = 1.0 + (this.player.attackAnimation / 10) * 0.2;
+      }
+      
       if (this.orientation === 'portrait') {
         // 竖屏：玩家朝上
-        this.ctx.translate(this.player.x, this.player.y);
+        this.ctx.translate(this.player.x, this.player.y + idleOffset);
         this.ctx.rotate(-Math.PI / 2);
+        this.ctx.scale(attackScale, attackScale);
         this.ctx.drawImage(
           this.player.image,
           -this.player.width / 2,
@@ -534,10 +650,12 @@ export class GameEngine {
         );
       } else {
         // 横屏：玩家朝右
+        this.ctx.translate(this.player.x, this.player.y + idleOffset);
+        this.ctx.scale(attackScale, attackScale);
         this.ctx.drawImage(
           this.player.image,
-          this.player.x - this.player.width / 2,
-          this.player.y - this.player.height / 2,
+          -this.player.width / 2,
+          -this.player.height / 2,
           this.player.width,
           this.player.height
         );
@@ -557,14 +675,28 @@ export class GameEngine {
 
     // 绘制敌人
     this.enemies.forEach(enemy => {
+      // 飞行动画：上下波动 + 轻微旋转
+      const flyOffset = Math.sin(enemy.animationOffset) * 5;
+      const flyRotation = Math.sin(enemy.animationOffset * 0.5) * 0.1;
+      
+      // 受击动画：闪烁和缩放
+      let hitAlpha = 1.0;
+      let hitScale = 1.0;
+      if (enemy.hitAnimation && enemy.hitAnimation > 0) {
+        hitAlpha = enemy.hitAnimation % 2 === 0 ? 0.5 : 1.0;
+        hitScale = 1.0 + (enemy.hitAnimation / 10) * 0.3;
+      }
+      
       if (enemy.image && enemy.image.complete) {
         // 绘制精灵图
         this.ctx.save();
+        this.ctx.globalAlpha = hitAlpha;
         
         if (this.orientation === 'portrait') {
           // 竖屏：敌人朝下
-          this.ctx.translate(enemy.x, enemy.y);
-          this.ctx.rotate(Math.PI / 2);
+          this.ctx.translate(enemy.x + flyOffset, enemy.y);
+          this.ctx.rotate(Math.PI / 2 + flyRotation);
+          this.ctx.scale(hitScale, hitScale);
           this.ctx.drawImage(
             enemy.image,
             -enemy.size,
@@ -574,10 +706,13 @@ export class GameEngine {
           );
         } else {
           // 横屏：敌人朝左
+          this.ctx.translate(enemy.x, enemy.y + flyOffset);
+          this.ctx.rotate(flyRotation);
+          this.ctx.scale(hitScale, hitScale);
           this.ctx.drawImage(
             enemy.image,
-            enemy.x - enemy.size,
-            enemy.y - enemy.size,
+            -enemy.size,
+            -enemy.size,
             enemy.size * 2,
             enemy.size * 2
           );
@@ -622,9 +757,20 @@ export class GameEngine {
         this.ctx.lineTo(this.swipeTrail[i].x, this.swipeTrail[i].y);
       }
       this.ctx.stroke();
-      
-      this.ctx.shadowBlur = 0;
+            this.ctx.shadowBlur = 0;
     }
+    
+    // 绘制粒子
+    this.particles.forEach(particle => {
+      const alpha = particle.life / particle.maxLife;
+      this.ctx.fillStyle = particle.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+      this.ctx.beginPath();
+      this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+      this.ctx.fill();
+    });
+    
+    // 恢复屏幕震动
+    this.ctx.restore();
   }
 
   public getScore(): number {
