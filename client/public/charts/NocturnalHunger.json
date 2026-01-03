@@ -1,0 +1,282 @@
+{
+  "metadata": {
+    "title": "Nocturnal Hunger",
+    "artist": "Unknown Artist",
+    "difficulty": "normal",
+    "bpm": 89.10290948275862,
+    "duration": 237.36,
+    "generated_by": "VampireAutoCharter v1.0"
+  },
+  "notes": [
+    {
+      "time": 1.741,
+      "type": "bat_blue",
+      "position": {
+        "x": 590,
+        "y": 74
+      },
+      "strength": 0.25
+    },
+    {
+      "time": 2.067,
+      "type": "bat_red",
+      "position": {
+        "x": 215,
+        "y": 71
+      },
+      "strength": 0.44
+    },
+    {
+      "time": 2.368,
+      "type": "bat_blue",
+      "position": {
+        "x": 266,
+        "y": 75
+      },
+      "strength": 0.2
+    },
+    {
+      "time": 6.757,
+      "type": "bat_red",
+      "position": {
+        "x": 406,
+        "y": 135
+      },
+      "strength": 0.26
+    },
+    {
+      "time": 7.105,
+      "type": "bat_blue",
+      "position": {
+        "x": 124,
+        "y": 64
+      },
+      "strength": 0.2
+    },
+    {
+      "time": 10.751,
+      "type": "bat_red",
+      "position": {
+        "x": 314,
+        "y": 112
+      },
+      "strength": 0.18
+    },
+    {
+      "time": 11.355,
+      "type": "bat_blue",
+      "position": {
+        "x": 319,
+        "y": 126
+      },
+      "strength": 0.23
+    },
+    {
+      "time": 20.085,
+      "type": "bat_yellow",
+      "position": {
+        "x": 569,
+        "y": 137
+      },
+      "strength": 0.3
+    },
+    {
+      "time": 27.423,
+      "type": "bat_red",
+      "position": {
+        "x": 574,
+        "y": 119
+      },
+      "strength": 0.25
+    },
+    {
+      "time": 28.096,
+      "type": "bat_red",
+      "position": {
+        "x": 473,
+        "y": 61
+      },
+      "strength": 0.2
+    },
+    {
+      "time": 41.587,
+      "type": "bat_blue",
+      "position": {
+        "x": 191,
+        "y": 63
+      },
+      "strength": 0.29
+    },
+    {
+      "time": 47.415,
+      "type": "bat_blue",
+      "position": {
+        "x": 499,
+        "y": 67
+      },
+      "strength": 0.26
+    },
+    {
+      "time": 54.079,
+      "type": "bat_red",
+      "position": {
+        "x": 265,
+        "y": 87
+      },
+      "strength": 0.18
+    },
+    {
+      "time": 60.767,
+      "type": "bat_blue",
+      "position": {
+        "x": 664,
+        "y": 138
+      },
+      "strength": 0.22
+    },
+    {
+      "time": 65.712,
+      "type": "bat_blue",
+      "position": {
+        "x": 474,
+        "y": 121
+      },
+      "strength": 0.16
+    },
+    {
+      "time": 72.028,
+      "type": "bat_purple",
+      "position": {
+        "x": 167,
+        "y": 74
+      },
+      "strength": 0.16
+    },
+    {
+      "time": 77.694,
+      "type": "bat_blue",
+      "position": {
+        "x": 559,
+        "y": 112
+      },
+      "strength": 0.16
+    },
+    {
+      "time": 118.027,
+      "type": "bat_blue",
+      "position": {
+        "x": 258,
+        "y": 86
+      },
+      "strength": 0.15
+    },
+    {
+      "time": 125.759,
+      "type": "bat_blue",
+      "position": {
+        "x": 689,
+        "y": 97
+      },
+      "strength": 0.21
+    },
+    {
+      "time": 139.413,
+      "type": "bat_blue",
+      "position": {
+        "x": 566,
+        "y": 88
+      },
+      "strength": 0.2
+    },
+    {
+      "time": 158.685,
+      "type": "bat_blue",
+      "position": {
+        "x": 682,
+        "y": 118
+      },
+      "strength": 0.16
+    },
+    {
+      "time": 166.742,
+      "type": "bat_purple",
+      "position": {
+        "x": 598,
+        "y": 133
+      },
+      "strength": 0.17
+    },
+    {
+      "time": 182.091,
+      "type": "bomb",
+      "position": {
+        "x": 625,
+        "y": 145
+      },
+      "strength": 0.15
+    },
+    {
+      "time": 182.741,
+      "type": "bat_yellow",
+      "position": {
+        "x": 423,
+        "y": 72
+      },
+      "strength": 0.17
+    },
+    {
+      "time": 187.408,
+      "type": "bat_red",
+      "position": {
+        "x": 304,
+        "y": 85
+      },
+      "strength": 0.15
+    },
+    {
+      "time": 199.715,
+      "type": "bat_blue",
+      "position": {
+        "x": 183,
+        "y": 90
+      },
+      "strength": 0.15
+    },
+    {
+      "time": 209.398,
+      "type": "bat_yellow",
+      "position": {
+        "x": 466,
+        "y": 83
+      },
+      "strength": 0.16
+    },
+    {
+      "time": 229.111,
+      "type": "bat_blue",
+      "position": {
+        "x": 649,
+        "y": 97
+      },
+      "strength": 0.4
+    },
+    {
+      "time": 229.181,
+      "type": "bat_blue",
+      "position": {
+        "x": 655,
+        "y": 63
+      },
+      "strength": 0.36
+    },
+    {
+      "time": 234.405,
+      "type": "bat_blue",
+      "position": {
+        "x": 274,
+        "y": 103
+      },
+      "strength": 0.22
+    }
+  ]
+}

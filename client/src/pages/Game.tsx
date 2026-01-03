@@ -37,10 +37,10 @@ export default function Game() {
       try {
         // Load audio
         const audioManager = new AudioManager();
-        await audioManager.loadAudio('/audio/test-song.wav');
+        await audioManager.loadAudio('/audio/NocturnalHunger.mp3');
         
         // Load chart
-        const chartData = await ChartLoader.loadFromURL('/charts/test-song.json');
+        const chartData = await ChartLoader.loadFromURL('/charts/NocturnalHunger.json');
         
         // Set audio and chart to game engine
         engine.setAudioAndChart(audioManager, chartData);
