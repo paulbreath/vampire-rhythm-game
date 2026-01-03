@@ -9,12 +9,14 @@ import { toast } from "sonner";
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
+  const audioManagerRef = useRef<AudioManager | null>(null);
   const [, setLocation] = useLocation();
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [health, setHealth] = useState(3);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -35,20 +37,29 @@ export default function Game() {
     // Load audio and chart
     const loadAudioAndChart = async () => {
       try {
+        console.log('Loading audio and chart...');
+        
         // Load audio
         const audioManager = new AudioManager();
         await audioManager.loadAudio('/audio/NocturnalHunger.mp3');
+        console.log('Audio loaded successfully');
         
         // Load chart
         const chartData = await ChartLoader.loadFromURL('/charts/NocturnalHunger.json');
+        console.log('Chart loaded:', chartData.notes.length, 'notes');
+        
+        // Save audio manager reference
+        audioManagerRef.current = audioManager;
         
         // Set audio and chart to game engine
         engine.setAudioAndChart(audioManager, chartData);
         
-        toast.success('Audio and chart loaded!');
+        setIsLoading(false);
+        toast.success(`Loaded ${chartData.notes.length} notes!`);
       } catch (error) {
         console.error('Failed to load audio/chart:', error);
         toast.error('Failed to load audio or chart');
+        setIsLoading(false);
       }
     };
 
@@ -60,13 +71,17 @@ export default function Game() {
   }, []);
 
   const handleStart = () => {
-    if (gameEngineRef.current) {
+    if (gameEngineRef.current && audioManagerRef.current) {
+      console.log('Starting game...');
       gameEngineRef.current.start();
       setIsPlaying(true);
       setIsGameOver(false);
       setScore(0);
       setCombo(0);
       setHealth(3);
+    } else {
+      console.error('Game engine or audio manager not ready');
+      toast.error('Game not ready, please wait...');
     }
   };
 
@@ -127,10 +142,11 @@ export default function Game() {
           {!isPlaying && !isGameOver && (
             <Button
               onClick={handleStart}
+              disabled={isLoading}
               className="pixel-button bg-primary text-primary-foreground text-xs"
               size="sm"
             >
-              START
+              {isLoading ? 'LOADING...' : 'START'}
             </Button>
           )}
           {isPlaying && (
@@ -175,12 +191,12 @@ export default function Game() {
                 <p className="text-xl">Final Score: <span className="glow-gold">{score.toLocaleString()}</span></p>
                 <p className="text-lg">Max Combo: <span className="glow-purple">{combo}x</span></p>
               </div>
-              <div className="flex gap-4 justify-center">
+              <div className="flex gap-4">
                 <Button
                   onClick={handleStart}
                   className="pixel-button bg-primary text-primary-foreground"
                 >
-                  RETRY
+                  RESTART
                 </Button>
                 <Button
                   onClick={() => setLocation("/")}

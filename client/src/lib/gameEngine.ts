@@ -258,12 +258,23 @@ export class GameEngine {
     // 如果有谱面和音频，根据音乐时间生成敌人
     if (this.audioManager && this.chartData && this.upcomingNotes.length > 0) {
       const currentTime = this.audioManager.getCurrentTime();
-      const spawnLeadTime = 2.0; // 提前2秒生成敌人
+      const spawnLeadTime = 3.0; // 提前3秒生成敌人（增加时间以确保可见）
+      
+      // 调试日志：每5秒输出一次
+      if (Math.floor(currentTime) % 5 === 0 && Math.floor(currentTime * 10) % 10 === 0) {
+        console.log(`Current time: ${currentTime.toFixed(2)}s, Upcoming notes: ${this.upcomingNotes.length}, Enemies: ${this.enemies.length}`);
+      }
       
       // 检查是否有需要生成的音符
+      let spawnedCount = 0;
       while (this.upcomingNotes.length > 0 && this.upcomingNotes[0].time - currentTime <= spawnLeadTime) {
         const note = this.upcomingNotes.shift()!;
         this.spawnEnemy(note.type);
+        spawnedCount++;
+      }
+      
+      if (spawnedCount > 0) {
+        console.log(`Spawned ${spawnedCount} enemies at time ${currentTime.toFixed(2)}s`);
       }
     } else {
       // 无谱面模式：随机生成
