@@ -62,12 +62,14 @@ export default function Game() {
         const chartData = await ChartLoader.loadFromURL('/charts/NocturnalHunger.json');
         console.log('Chart loaded:', chartData.notes.length, 'notes');
         
-        // Save audio manager reference
+        // IMPORTANT: Save audio manager reference BEFORE setting to engine
         audioManagerRef.current = audioManager;
         
         // Set audio and chart to game engine
-        engine.setAudioManager(audioManager);
-        engine.setChartData(chartData);
+        if (gameEngineRef.current) {
+          gameEngineRef.current.setAudioManager(audioManager);
+          gameEngineRef.current.setChartData(chartData);
+        }
         
         setIsLoading(false);
         toast.success(`Loaded ${chartData.notes.length} notes!`);
@@ -112,18 +114,22 @@ export default function Game() {
   }, []);
 
   const handleStart = () => {
-    if (gameEngineRef.current && audioManagerRef.current) {
-      console.log('Starting game...');
-      gameEngineRef.current.start();
-      setIsPlaying(true);
-      setIsGameOver(false);
-      setScore(0);
-      setCombo(0);
-      setHealth(3);
-    } else {
-      console.error('Game engine or audio manager not ready');
-      toast.error('Game not ready, please wait...');
+    if (!gameEngineRef.current) {
+      toast.error('Game engine not ready');
+      return;
     }
+    
+    if (isLoading) {
+      toast.error('Please wait for loading to complete');
+      return;
+    }
+    
+    gameEngineRef.current.start();
+    setIsPlaying(true);
+    setIsGameOver(false);
+    setScore(0);
+    setCombo(0);
+    setHealth(3);
   };
 
   const handlePause = () => {

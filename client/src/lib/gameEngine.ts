@@ -58,6 +58,8 @@ export class GameEngine {
   private onComboChange?: (combo: number) => void;
   private onLivesChange?: (lives: number) => void;
   private onGameOver?: () => void;
+  
+  private isGameStarted = false;  // 标记游戏是否已开始
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -193,8 +195,10 @@ export class GameEngine {
   }
 
   public start(): void {
+    console.log('GameEngine.start() called');
     this.isPaused = false;
     this.isGameOver = false;
+    this.isGameStarted = true;  // 设置游戏已开始标志
     this.score = 0;
     this.combo = 0;
     this.lives = this.maxLives;
@@ -208,11 +212,13 @@ export class GameEngine {
         time: note.time,
         type: note.type as Enemy['type']
       }));
+      console.log(`Reset ${this.upcomingNotes.length} notes`);
     }
     
     // 开始播放音乐
     if (this.audioManager) {
       this.audioManager.play();
+      console.log('Audio started');
     }
     
     this.onScoreChange?.(this.score);
@@ -235,30 +241,39 @@ export class GameEngine {
   }
 
   public update(): void {
-    if (this.isPaused) return;
+    if (this.isGameOver || this.isPaused) return;
+    
+    // 只在游戏开始后才运行敌人生成逻辑
+    if (!this.isGameStarted) return;
     
     const now = Date.now();
     
     // 如果有谱面和音频，根据音乐时间生成敌人
     if (this.audioManager && this.chartData && this.upcomingNotes.length > 0) {
       const currentTime = this.audioManager.getCurrentTime();
-      const spawnLeadTime = 3.0; // 提前3秒生成敌人（增加时间以确保可见）
+      const spawnLeadTime = 2.0; // 减少到2秒，避免开头生成太多敌人
       
       // 调试日志：每5秒输出一次
       if (Math.floor(currentTime) % 5 === 0 && Math.floor(currentTime * 10) % 10 === 0) {
         console.log(`Current time: ${currentTime.toFixed(2)}s, Upcoming notes: ${this.upcomingNotes.length}, Enemies: ${this.enemies.length}`);
       }
       
-      // 检查是否有需要生成的音符
-      let spawnedCount = 0;
-      while (this.upcomingNotes.length > 0 && this.upcomingNotes[0].time - currentTime <= spawnLeadTime) {
-        const note = this.upcomingNotes.shift()!;
-        this.spawnEnemy(note.type);
-        spawnedCount++;
-      }
-      
-      if (spawnedCount > 0) {
-        console.log(`Spawned ${spawnedCount} enemies at time ${currentTime.toFixed(2)}s`);
+      // 只在音乐实际播放时才生成敌人（避免负时间或初始化时生成）
+      if (currentTime >= -0.1) {  // 允许小的负值误差
+        // 检查是否有需要生成的音符，限制每帧最多生成数量
+        let spawnedCount = 0;
+        const maxSpawnPerFrame = 5; // 每帧最多生成5个敌人
+        while (this.upcomingNotes.length > 0 && 
+               this.upcomingNotes[0].time - currentTime <= spawnLeadTime &&
+               spawnedCount < maxSpawnPerFrame) {
+          const note = this.upcomingNotes.shift()!;
+          this.spawnEnemy(note.type);
+          spawnedCount++;
+        }
+        
+        if (spawnedCount > 0) {
+          console.log(`Spawned ${spawnedCount} enemies at time ${currentTime.toFixed(2)}s`);
+        }
       }
     } else {
       // 无谱面模式：随机生成
@@ -288,9 +303,15 @@ export class GameEngine {
       
       if (isOutOfBounds) {
         // 敌人逃脱，扣血（炸弹除外）
-        if (enemy.type !== 'bomb') {
-          this.loseLife();
-          console.log(`Enemy escaped! Lives: ${this.lives}`);
+        if (enemy.type !== 'bomb' && this.isGameStarted) {
+          // 给玩家5秒的grace period，让他们有时间熟悉游戏
+          const currentTime = this.audioManager?.getCurrentTime() || 0;
+          if (currentTime > 5.0) {
+            this.loseLife();
+            console.log(`Enemy escaped! Lives: ${this.lives}`);
+          } else {
+            console.log(`Enemy escaped during grace period (${currentTime.toFixed(1)}s/5.0s)`);
+          }
         }
         return false;
       }
@@ -329,32 +350,32 @@ export class GameEngine {
     switch (enemyType) {
       case 'bat_blue':
         size = 40;
-        speed = 1.5;  // 降低速度，给玩家更多反应时间
+        speed = 3.0;  // 增加速度，让敌人更快离开屏幕
         color = '#00ffff';
         break;
       case 'bat_purple':
         size = 40;
-        speed = 1.5;
+        speed = 3.0;
         color = '#ff00ff';
         break;
       case 'bat_red':
         size = 40;
-        speed = 2.0;
+        speed = 3.5;
         color = '#ff0000';
         break;
       case 'bat_yellow':
         size = 40;
-        speed = 2.0;
+        speed = 3.5;
         color = '#ffff00';
         break;
       case 'vampire':
         size = 60;
-        speed = 1.0;  // BOSS移动较慢
+        speed = 2.0;  // BOSS速度也增加
         color = '#ffd700';
         break;
       case 'bomb':
         size = 45;
-        speed = 1.5;
+        speed = 3.0;
         color = '#ff0000';
         break;
     }
