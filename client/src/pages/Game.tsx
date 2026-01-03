@@ -5,6 +5,7 @@ import { GameEngine } from "@/lib/gameEngine";
 import { AudioManager } from "@/lib/audioManager";
 import { ChartLoader } from "@/lib/chartLoader";
 import { toast } from "sonner";
+import { getSongById, SONGS } from "@/data/songs";
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,6 +22,11 @@ export default function Game() {
 
   useEffect(() => {
     if (!canvasRef.current) return;
+
+    // 从 URL 获取歌曲 ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const songId = urlParams.get('song') || SONGS[0].id;
+    const currentSong = getSongById(songId) || SONGS[0];
 
     // Initialize game engine
     const engine = new GameEngine(canvasRef.current);
@@ -55,11 +61,11 @@ export default function Game() {
         
         // Load audio
         const audioManager = new AudioManager();
-        await audioManager.loadAudio('/audio/NocturnalHunger.mp3');
-        console.log('Audio loaded successfully');
+        await audioManager.loadAudio(currentSong.audioPath);
+        console.log('Audio loaded successfully:', currentSong.title);
         
         // Load chart
-        const chartData = await ChartLoader.loadFromURL('/charts/NocturnalHunger.json');
+        const chartData = await ChartLoader.loadFromURL(currentSong.chartPath);
         console.log('Chart loaded:', chartData.notes.length, 'notes');
         
         // IMPORTANT: Save audio manager reference BEFORE setting to engine
