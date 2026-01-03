@@ -124,6 +124,11 @@ export class GameEngine {
     const width = this.canvas.width || window.innerWidth;
     const height = this.canvas.height || window.innerHeight;
     
+    // 保留已加载的图片和动画状态
+    const oldImage = this.player?.image;
+    const oldIdleAnimation = this.player?.idleAnimation || 0;
+    const oldAttackAnimation = this.player?.attackAnimation;
+    
     if (this.orientation === 'portrait') {
       // 竖屏：玩家在底部
       return {
@@ -131,16 +136,20 @@ export class GameEngine {
         y: height - 100,
         width: 80,
         height: 120,
-        idleAnimation: 0,
+        idleAnimation: oldIdleAnimation,
+        attackAnimation: oldAttackAnimation,
+        image: oldImage,
       };
     } else {
-      // 横屏：玩家在地面上（屏幕底部）
+      // 横屏：玩家站在教堂地毯上（大约在屏幕高度75%位置）
       return {
         x: 150,
-        y: height - 80,  // 站在地面上，留出一些边距
+        y: height * 0.75,  // 站在地毯上，视觉上更合理
         width: 80,
         height: 120,
-        idleAnimation: 0,
+        idleAnimation: oldIdleAnimation,
+        attackAnimation: oldAttackAnimation,
+        image: oldImage,
       };
     }
   }
@@ -235,10 +244,11 @@ export class GameEngine {
       console.log(`Reset ${this.upcomingNotes.length} notes`);
     }
     
-    // 开始播放音乐
+    // 停止并重置音频，确保从头开始播放
     if (this.audioManager) {
-      this.audioManager.play();
-      console.log('Audio started');
+      this.audioManager.stop();  // 先停止，重置时间
+      this.audioManager.play();   // 再播放，从头开始
+      console.log('Audio restarted from beginning');
     }
     
     this.onScoreChange?.(this.score);
@@ -268,18 +278,18 @@ export class GameEngine {
     
     const now = Date.now();
     
-    // 如果有谱面和音频，根据音乐时间生成敌人
+    // 如果有谱面和音频，    // 根据谱面生成敌人
     if (this.audioManager && this.chartData && this.upcomingNotes.length > 0) {
       const currentTime = this.audioManager.getCurrentTime();
-      const spawnLeadTime = 2.0; // 减少到2秒，避免开头生成太多敌人
-      
+      const spawnLeadTime = 1.5; // 减少到1.5秒，让敌人生成更平缓
+      const initialDelay = 1.0; // 游戏开始的前1秒不生成敌人  
       // 调试日志：每5秒输出一次
       if (Math.floor(currentTime) % 5 === 0 && Math.floor(currentTime * 10) % 10 === 0) {
         console.log(`Current time: ${currentTime.toFixed(2)}s, Upcoming notes: ${this.upcomingNotes.length}, Enemies: ${this.enemies.length}`);
       }
       
-      // 只在音乐实际播放时才生成敌人（避免负时间或初始化时生成）
-      if (currentTime >= -0.1) {  // 允许小的负值误差
+      // 只在音乐实际播放且超过初始延迟后才生成敌人
+      if (currentTime >= initialDelay) {  // 等待初始延迟结束
         // 检查是否有需要生成的音符，限制每帧最多生成数量
         let spawnedCount = 0;
         const maxSpawnPerFrame = 3; // 每帧最多生成3个敌人，防止一次性生成太多
