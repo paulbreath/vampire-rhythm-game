@@ -118,8 +118,14 @@ export class GameEngine {
   private onGameOver?: () => void;
   
   private isGameStarted = false;  // 标记游戏是否已开始
+  
+  // 难度倍率
+  private speedMultiplier: number = 1.0;
+  private densityMultiplier: number = 1.0;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, speedMultiplier: number = 1.0, densityMultiplier: number = 1.0) {
+    this.speedMultiplier = speedMultiplier;
+    this.densityMultiplier = densityMultiplier;
     this.canvas = canvas;
     const context = canvas.getContext('2d');
     if (!context) {
@@ -341,6 +347,18 @@ export class GameEngine {
     this.audioManager = audioManager;
   }
   
+  public setBackgroundImage(imagePath: string): void {
+    const bgImg = new Image();
+    bgImg.src = imagePath;
+    bgImg.onload = () => {
+      this.backgroundImage = bgImg;
+      console.log('Background loaded:', imagePath);
+    };
+    bgImg.onerror = () => {
+      console.error('Failed to load background:', imagePath);
+    };
+  }
+  
   public setChartData(chartData: ChartData): void {
     this.chartData = chartData;
     // 复制音符列表
@@ -450,7 +468,8 @@ export class GameEngine {
       }
     } else {
       // 无谱面模式：随机生成
-      if (now - this.lastSpawnTime > this.spawnInterval) {
+      const adjustedInterval = this.spawnInterval / this.densityMultiplier; // 应用难度密集度倍率
+      if (now - this.lastSpawnTime > adjustedInterval) {
         this.spawnEnemy();
         this.lastSpawnTime = now;
       }
@@ -653,7 +672,7 @@ export class GameEngine {
       type: enemyType,
       x,
       y,
-      speed,
+      speed: speed * this.speedMultiplier, // 应用难度速度倍率
       size,
       color,
       image: this.enemyImages.get(enemyType),

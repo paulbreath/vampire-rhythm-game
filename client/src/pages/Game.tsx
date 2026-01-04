@@ -7,6 +7,7 @@ import { ChartLoader } from "@/lib/chartLoader";
 import { toast } from "sonner";
 import { getSongById, SONGS } from "@/data/songs";
 import { SoundEffectsManager } from "@/lib/soundEffects";
+import { progressManager, STAGES, DIFFICULTY_CONFIGS, type DifficultyLevel } from "@/lib/progressManager";
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -25,17 +26,29 @@ export default function Game() {
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    // 从 URL 获取歌曲 ID
+    // 从 URL 获取关卡和难度
     const urlParams = new URLSearchParams(window.location.search);
-    const songId = urlParams.get('song') || SONGS[0].id;
-    const currentSong = getSongById(songId) || SONGS[0];
+    const stageId = urlParams.get('stage') || STAGES[0].id;
+    const difficulty = (urlParams.get('difficulty') as DifficultyLevel) || 'normal';
+    
+    // 获取关卡配置
+    const currentStage = STAGES.find(s => s.id === stageId) || STAGES[0];
+    const difficultyConfig = DIFFICULTY_CONFIGS[difficulty];
+    
+    // 兼容旧的song参数（如果有）
+    const songId = urlParams.get('song');
+    const currentSong = songId ? (getSongById(songId) || SONGS[0]) : SONGS[0];
 
     // Initialize sound effects
     const soundEffects = new SoundEffectsManager();
     soundEffectsRef.current = soundEffects;
 
-    // Initialize game engine
-    const engine = new GameEngine(canvasRef.current);
+    // Initialize game engine with difficulty multipliers
+    const engine = new GameEngine(
+      canvasRef.current,
+      difficultyConfig.speedMultiplier,
+      difficultyConfig.densityMultiplier
+    );
     engine.setSoundEffects(soundEffects);
     
     // Set callbacks
@@ -47,6 +60,22 @@ export default function Game() {
         soundEffects.playGameOver();
         setIsGameOver(true);
         setIsPlaying(false);
+        
+        // 保存通关进度（如果有剩余生命值，表示通关成功）
+        if (health > 0) {
+          const stageIndex = STAGES.findIndex(s => s.id === stageId);
+          if (stageIndex !== -1) {
+            const currentProgress = progressManager.loadProgress();
+            const newProgress = progressManager.completeStage(
+              currentProgress,
+              stageIndex,
+              difficulty,
+              score
+            );
+            console.log('Stage completed! Progress saved:', newProgress);
+            toast.success(`Stage ${stageIndex + 1} completed on ${difficulty.toUpperCase()}!`);
+          }
+        }
       }
     });
 
@@ -79,8 +108,9 @@ export default function Game() {
         // IMPORTANT: Save audio manager reference BEFORE setting to engine
         audioManagerRef.current = audioManager;
         
-        // Set audio and chart to game engine
+        // Set background, audio and chart to game engine
         if (gameEngineRef.current) {
+          gameEngineRef.current.setBackgroundImage(currentStage.backgroundImage);
           gameEngineRef.current.setAudioManager(audioManager);
           gameEngineRef.current.setChartData(chartData);
         }
