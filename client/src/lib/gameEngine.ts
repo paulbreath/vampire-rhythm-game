@@ -38,6 +38,17 @@ export interface Particle {
   size: number;
 }
 
+export interface FloatingText {
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+  life: number;
+  maxLife: number;
+  fontSize: number;
+  vy: number; // 向上移动速度
+}
+
 export type GameOrientation = 'portrait' | 'landscape';
 
 export class GameEngine {
@@ -46,6 +57,7 @@ export class GameEngine {
   private enemies: Enemy[] = [];
   private player: Player;
   private particles: Particle[] = []; // 粒子系统
+  private floatingTexts: FloatingText[] = []; // 浮动文字系统
   private screenShake: { x: number; y: number; duration: number } = { x: 0, y: 0, duration: 0 }; // 屏幕震动
   private score: number = 0;
   private combo: number = 0;
@@ -369,6 +381,13 @@ export class GameEngine {
       return particle.life > 0;
     });
     
+    // 更新浮动文字
+    this.floatingTexts = this.floatingTexts.filter(text => {
+      text.y += text.vy; // 向上移动
+      text.life -= 0.02; // 每帧减少2%生命值，大约50帧（1秒）消失
+      return text.life > 0;
+    });
+    
     // 更新屏幕震动
     if (this.screenShake.duration > 0) {
       this.screenShake.duration--;
@@ -523,7 +542,7 @@ export class GameEngine {
           this.triggerScreenShake(15);
         } else {
           // 击中普通敌人，加分
-          this.addScore(enemy.type);
+          this.addScore(enemy.type, enemy.x, enemy.y);
           // 击中特效
           this.createParticles(enemy.x, enemy.y, enemy.color, 10);
           this.triggerScreenShake(5);
@@ -557,7 +576,20 @@ export class GameEngine {
     this.screenShake.duration = Math.max(this.screenShake.duration, duration);
   }
 
-  private addScore(enemyType: Enemy['type']): void {
+  private createFloatingText(text: string, x: number, y: number, color: string = '#FFFFFF', fontSize: number = 24): void {
+    this.floatingTexts.push({
+      x,
+      y,
+      text,
+      color,
+      life: 1.0,
+      maxLife: 1.0,
+      fontSize,
+      vy: -2, // 向上移动速度（2像素/帧）
+    });
+  }
+
+  private addScore(enemyType: Enemy['type'], x?: number, y?: number): void {
     let points = 10;
     
     switch (enemyType) {
@@ -575,7 +607,18 @@ export class GameEngine {
     }
     
     this.combo++;
-    this.score += points * (1 + this.combo * 0.1);
+    const actualPoints = Math.floor(points * (1 + this.combo * 0.1));
+    this.score += actualPoints;
+    
+    // 创建浮动文字
+    if (x !== undefined && y !== undefined) {
+      this.createFloatingText(`+${actualPoints}`, x, y, '#FFD700'); // 金色
+      
+      // 连击时显示COMBO文字
+      if (this.combo >= 5 && this.combo % 5 === 0) {
+        this.createFloatingText(`COMBO x${this.combo}!`, x, y - 40, '#FF4500', 32); // 红色，更大字号
+      }
+    }
     
     // 播放音效
     this.soundEffects?.playHit();
@@ -752,6 +795,27 @@ export class GameEngine {
       this.ctx.beginPath();
       this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
       this.ctx.fill();
+    });
+    
+    // 绘制浮动文字
+    this.floatingTexts.forEach(text => {
+      const alpha = text.life;
+      this.ctx.save();
+      this.ctx.globalAlpha = alpha;
+      this.ctx.font = `bold ${text.fontSize}px "Press Start 2P", monospace`;
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      
+      // 绘制描边（黑色）
+      this.ctx.strokeStyle = '#000000';
+      this.ctx.lineWidth = 4;
+      this.ctx.strokeText(text.text, text.x, text.y);
+      
+      // 绘制文字
+      this.ctx.fillStyle = text.color;
+      this.ctx.fillText(text.text, text.x, text.y);
+      
+      this.ctx.restore();
     });
     
     // 恢复屏幕震动
