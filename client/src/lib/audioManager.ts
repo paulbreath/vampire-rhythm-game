@@ -6,6 +6,7 @@
 export interface AudioConfig {
   onBeatUpdate?: (beatTime: number) => void;
   onTimeUpdate?: (currentTime: number) => void;
+  onMusicEnd?: () => void;
 }
 
 export class AudioManager {
@@ -80,6 +81,14 @@ export class AudioManager {
     this.sourceNode = this.audioContext.createBufferSource();
     this.sourceNode.buffer = this.audioBuffer;
     this.sourceNode.connect(this.gainNode!);
+    
+    // 添加音乐结束监听
+    this.sourceNode.onended = () => {
+      this.isPlaying = false;
+      if (this.config.onMusicEnd) {
+        this.config.onMusicEnd();
+      }
+    };
     
     // 如果是从暂停恢复，从暂停位置开始
     const offset = this.isPaused ? this.pauseTime : 0;

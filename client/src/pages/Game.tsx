@@ -96,8 +96,32 @@ export default function Game() {
       try {
         console.log('Loading audio and chart...');
         
-        // Load audio
-        const audioManager = new AudioManager();
+        // Load audio with music end callback
+        const audioManager = new AudioManager({
+          onMusicEnd: () => {
+            // 音乐结束，检查是否通关
+            if (gameEngineRef.current && health > 0) {
+              console.log('Music ended! Player survived - Stage Clear!');
+              soundEffects.playGameOver(); // 播放结束音效
+              setIsGameOver(true);
+              setIsPlaying(false);
+              
+              // 保存通关进度
+              const stageIndex = STAGES.findIndex(s => s.id === stageId);
+              if (stageIndex !== -1) {
+                const currentProgress = progressManager.loadProgress();
+                const newProgress = progressManager.completeStage(
+                  currentProgress,
+                  stageIndex,
+                  difficulty,
+                  score
+                );
+                console.log('Stage completed! Progress saved:', newProgress);
+                toast.success(`🎉 Stage ${stageIndex + 1} cleared on ${difficulty.toUpperCase()}!`);
+              }
+            }
+          }
+        });
         await audioManager.loadAudio(currentSong.audioPath);
         console.log('Audio loaded successfully:', currentSong.title);
         

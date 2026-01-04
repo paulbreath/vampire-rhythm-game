@@ -13,6 +13,14 @@ export interface Enemy {
   image?: HTMLImageElement; // 敌人精灵图
   animationOffset: number; // 动画偏移，用于飞行效果
   hitAnimation?: number; // 受击动画计时器
+  isBoss?: boolean; // 是否为BOSS
+  health?: number; // BOSS血量（普通敌人为1）
+  maxHealth?: number; // BOSS最大血量
+  guardBombs?: number[]; // BOSS护卫炸弹的ID列表
+  isGuardBomb?: boolean; // 是否为BOSS护卫炸弹
+  guardBossId?: number; // 护卫的BOSS ID
+  guardAngle?: number; // 护卫环绕角度（弧度）
+  guardRadius?: number; // 护卫环绕半径
 }
 
 export interface Player {
@@ -170,8 +178,8 @@ export class GameEngine {
       targetY: initialY,
       rotation: 0,  // 初始朝向右
       facingRight: true,  // 初始朝向右
-      width: 80,
-      height: 120,
+      width: 120, // 2x larger than normal bat
+      height: 180, // 2x larger than normal bat
       idleAnimation: oldIdleAnimation,
       attackAnimation: oldAttackAnimation,
       attackDashX: 0,
@@ -231,7 +239,7 @@ export class GameEngine {
         console.warn('Fallback image failed to load');
         resolve(); // 不阻塞
       };
-      playerFallbackImg.src = '/images/characters/hybrid-warrior-side.png';
+      playerFallbackImg.src = '/images/characters/castlevania-hero-side.png';
     });
     
     imageLoadPromises.push(idlePromise, attackPromise, fallbackPromise);
@@ -477,8 +485,25 @@ export class GameEngine {
 
     // 更新敌人位置和动画（只支持横屏）
     this.enemies.forEach(enemy => {
-      // 横屏：敌人从右往左移动
-      enemy.x -= enemy.speed;
+      // 如果是护卫炸弹，环绕BOSS飞行
+      if (enemy.isGuardBomb && enemy.guardBossId !== undefined) {
+        const boss = this.enemies.find(e => e.id === enemy.guardBossId);
+        if (boss) {
+          // 更新环绕角度
+          enemy.guardAngle = (enemy.guardAngle || 0) + 0.05; // 每帧旋转0.05弧度
+          
+          // 计算新位置（相对于BOSS）
+          const radius = enemy.guardRadius || 100;
+          enemy.x = boss.x + Math.cos(enemy.guardAngle) * radius;
+          enemy.y = boss.y + Math.sin(enemy.guardAngle) * radius;
+        } else {
+          // BOSS已死，护卫炸弹正常移动
+          enemy.x -= enemy.speed;
+        }
+      } else {
+        // 横屏：敌人从右往左移动
+        enemy.x -= enemy.speed;
+      }
       
       // 更新飞行动画
       enemy.animationOffset += 0.1;
@@ -652,8 +677,8 @@ export class GameEngine {
         color = '#ffff00';
         break;
       case 'vampire':
-        size = 60;
-        speed = 2.0;  // BOSS速度也增加
+        size = 80; // BOSS更大
+        speed = 1.5;  // BOSS速度较慢
         color = '#ffd700';
         break;
       case 'bomb':
@@ -678,6 +703,41 @@ export class GameEngine {
       image: this.enemyImages.get(enemyType),
       animationOffset: Math.random() * Math.PI * 2, // 随机初始动画偏移，让敌人动画不同步
     };
+    
+    // 如果是BOSS，添加血量和护卫炸弹
+    if (enemyType === 'vampire') {
+      enemy.isBoss = true;
+      enemy.health = 10;
+      enemy.maxHealth = 10;
+      enemy.guardBombs = [];
+      
+      // 生成2个护卫炸弹
+      const guardRadius = 100; // 环绕半径
+      for (let i = 0; i < 2; i++) {
+        const guardAngle = (Math.PI * 2 / 2) * i; // 均匀分布在圆周上
+        const guardX = x + Math.cos(guardAngle) * guardRadius;
+        const guardY = y + Math.sin(guardAngle) * guardRadius;
+        
+        const guardBomb: Enemy = {
+          id: this.nextEnemyId++,
+          type: 'bomb',
+          x: guardX,
+          y: guardY,
+          speed: enemy.speed, // 与BOSS同速
+          size: 45,
+          color: '#ff0000',
+          image: this.enemyImages.get('bomb'),
+          animationOffset: Math.random() * Math.PI * 2,
+          isGuardBomb: true,
+          guardBossId: enemy.id,
+          guardAngle: guardAngle,
+          guardRadius: guardRadius,
+        };
+        
+        this.enemies.push(guardBomb);
+        enemy.guardBombs.push(guardBomb.id);
+      }
+    }
     
     this.enemies.push(enemy);
   }
@@ -721,13 +781,57 @@ export class GameEngine {
       if (distance < enemy.size) {
         // 击中敌人
         if (enemy.type === 'bomb') {
-          // 击中炸弹，扣血
+          // 击中炸弹，扫血
           this.loseLife();
           this.combo = 0;
           this.onComboChange?.(this.combo);
           // 炸弹爆炸特效
           this.createParticles(enemy.x, enemy.y, '#ff0000', 20);
           this.triggerScreenShake(15);
+          return false; // 移除炸弹
+        } else if (enemy.isBoss) {
+          // 击中BOSS，减少血量
+          enemy.health = (enemy.health || 1) - 1;
+          enemy.hitAnimation = 10; // 受击动画
+          
+          // 击中特效
+          this.createParticles(enemy.x, enemy.y, enemy.color, 15);
+          this.triggerScreenShake(8);
+          
+          // 触发玩家攻击动画
+          this.player.attackAnimation = 10;
+          if (this.player.spriteAnimation) {
+            this.player.spriteAnimation.current = this.player.spriteAnimation.attack;
+            this.player.spriteAnimation.current.reset();
+            this.player.animationState = 'attack';
+          }
+          
+          // 攻击冲刺
+          const dashDx = enemy.x - this.player.x;
+          const dashDy = enemy.y - this.player.y;
+          const dashDistance = Math.sqrt(dashDx * dashDx + dashDy * dashDy);
+          if (dashDistance > 0) {
+            const dashSpeed = 30;
+            this.player.attackDashX = (dashDx / dashDistance) * dashSpeed;
+            this.player.attackDashY = (dashDy / dashDistance) * dashSpeed;
+            this.player.attackDashDuration = 8;
+          }
+          
+          // 如果BOSS血量归零，添加分数并移除
+          if (enemy.health <= 0) {
+            this.addScore(enemy.type, enemy.x, enemy.y);
+            this.createParticles(enemy.x, enemy.y, '#ffd700', 30); // 金色爆炸
+            this.triggerScreenShake(20);
+            
+            // 移除BOSS的护卫炸弹
+            if (enemy.guardBombs) {
+              this.enemies = this.enemies.filter(e => !enemy.guardBombs!.includes(e.id));
+            }
+            
+            return false; // 移除BOSS
+          }
+          
+          return true; // 保留BOSS
         } else {
           // 击中普通敌人，加分
           this.addScore(enemy.type, enemy.x, enemy.y);
@@ -737,7 +841,7 @@ export class GameEngine {
           // 触发玩家攻击动画和冲刺
           this.player.attackAnimation = 10;
           
-          // 触发sprite攻击动画（新系统）
+          // 触发sprite政击动画（新系统）
           if (this.player.spriteAnimation) {
             this.player.spriteAnimation.current = this.player.spriteAnimation.attack;
             this.player.spriteAnimation.current.reset(); // 重置动画到第一帧
@@ -754,8 +858,9 @@ export class GameEngine {
             this.player.attackDashY = (dashDy / dashDistance) * dashSpeed;
             this.player.attackDashDuration = 8; // 冲刺持续8帧
           }
+          
+          return false; // 移除普通敌人
         }
-        return false; // 移除敌人
       }
       return true;
     });
@@ -1074,6 +1179,38 @@ export class GameEngine {
         this.ctx.beginPath();
         this.ctx.arc(enemy.x, enemy.y, enemy.size, 0, Math.PI * 2);
         this.ctx.fill();
+      }
+      
+      // 如果是BOSS，绘制血条
+      if (enemy.isBoss && enemy.health !== undefined && enemy.maxHealth !== undefined) {
+        const barWidth = 100;
+        const barHeight = 8;
+        const barX = enemy.x - barWidth / 2;
+        const barY = enemy.y - enemy.size - 20;
+        
+        // 背景（灰色）
+        this.ctx.fillStyle = '#333333';
+        this.ctx.fillRect(barX, barY, barWidth, barHeight);
+        
+        // 血量（红色渐变到金色）
+        const healthPercent = enemy.health / enemy.maxHealth;
+        const healthBarWidth = barWidth * healthPercent;
+        const healthGradient = this.ctx.createLinearGradient(barX, barY, barX + healthBarWidth, barY);
+        healthGradient.addColorStop(0, '#ff0000');
+        healthGradient.addColorStop(1, '#ffd700');
+        this.ctx.fillStyle = healthGradient;
+        this.ctx.fillRect(barX, barY, healthBarWidth, barHeight);
+        
+        // 边框
+        this.ctx.strokeStyle = '#ffffff';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(barX, barY, barWidth, barHeight);
+        
+        // 血量数字
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = 'bold 14px monospace';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(`${enemy.health}/${enemy.maxHealth}`, enemy.x, barY - 5);
       }
     });
 
