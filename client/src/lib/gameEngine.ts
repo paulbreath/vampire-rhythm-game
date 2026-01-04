@@ -47,6 +47,8 @@ export interface FloatingText {
   maxLife: number;
   fontSize: number;
   vy: number; // 向上移动速度
+  scale?: number; // 缩放比例，用于动画
+  isCombo?: boolean; // 是否是连击文字，用于特殊动画
 }
 
 export type GameOrientation = 'portrait' | 'landscape';
@@ -385,6 +387,22 @@ export class GameEngine {
     this.floatingTexts = this.floatingTexts.filter(text => {
       text.y += text.vy; // 向上移动
       text.life -= 0.02; // 每帧减少2%生命值，大约50帧（1秒）消失
+      
+      // 连击文字的缩放动画：0.5 -> 1.5 -> 1.0
+      if (text.isCombo && text.scale !== undefined) {
+        const progress = 1 - text.life; // 0.0 -> 1.0
+        if (progress < 0.3) {
+          // 前30%时间：从0.5放大到1.5
+          text.scale = 0.5 + (progress / 0.3) * 1.0; // 0.5 -> 1.5
+        } else if (progress < 0.5) {
+          // 30%-50%时间：从1.5缩小到1.0
+          text.scale = 1.5 - ((progress - 0.3) / 0.2) * 0.5; // 1.5 -> 1.0
+        } else {
+          // 50%之后：保持1.0
+          text.scale = 1.0;
+        }
+      }
+      
       return text.life > 0;
     });
     
@@ -576,16 +594,18 @@ export class GameEngine {
     this.screenShake.duration = Math.max(this.screenShake.duration, duration);
   }
 
-  private createFloatingText(text: string, x: number, y: number, color: string = '#FFFFFF', fontSize: number = 24): void {
+  private createFloatingText(text: string, x: number, y: number, color: string = '#FFD700', fontSize: number = 24, isCombo: boolean = false): void {
     this.floatingTexts.push({
       x,
       y,
       text,
       color,
-      life: 1.0,
+      life: 1.0, // 1.0 = 100% 不透明
       maxLife: 1.0,
       fontSize,
       vy: -2, // 向上移动速度（2像素/帧）
+      scale: isCombo ? 0.5 : 1.0, // 连击文字从0.5开始放大
+      isCombo,
     });
   }
 
@@ -614,9 +634,18 @@ export class GameEngine {
     if (x !== undefined && y !== undefined) {
       this.createFloatingText(`+${actualPoints}`, x, y, '#FFD700'); // 金色
       
-      // 连击时显示COMBO文字
+      // 连击里程碑：5x, 10x, 15x, 20x, 25x...
       if (this.combo >= 5 && this.combo % 5 === 0) {
-        this.createFloatingText(`COMBO x${this.combo}!`, x, y - 40, '#FF4500', 32); // 红色，更大字号
+        // 显示COMBO文字（带缩放动画）
+        this.createFloatingText(`COMBO x${this.combo}!`, x, y - 40, '#FF4500', 32, true); // 红色，更大字号，isCombo=true
+        
+        // 金色粒子爆炸（数量和范围根据连击数增加）
+        const particleCount = Math.min(30 + this.combo, 100); // 30-100个粒子
+        this.createParticles(x, y, '#FFD700', particleCount); // 金色粒子
+        
+        // 屏幕震动（强度根据连击数增加）
+        const shakeIntensity = Math.min(10 + this.combo / 2, 25); // 10-25强度
+        this.triggerScreenShake(shakeIntensity);
       }
     }
     
@@ -800,20 +829,35 @@ export class GameEngine {
     // 绘制浮动文字
     this.floatingTexts.forEach(text => {
       const alpha = text.life;
+      const scale = text.scale || 1.0;
+      
       this.ctx.save();
       this.ctx.globalAlpha = alpha;
+      
+      // 应用缩放变换
+      this.ctx.translate(text.x, text.y);
+      this.ctx.scale(scale, scale);
+      
       this.ctx.font = `bold ${text.fontSize}px "Press Start 2P", monospace`;
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
       
+      // 连击文字添加发光效果
+      if (text.isCombo) {
+        this.ctx.shadowColor = text.color;
+        this.ctx.shadowBlur = 20 * scale; // 发光强度跟随缩放
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 0;
+      }
+      
       // 绘制描边（黑色）
       this.ctx.strokeStyle = '#000000';
       this.ctx.lineWidth = 4;
-      this.ctx.strokeText(text.text, text.x, text.y);
+      this.ctx.strokeText(text.text, 0, 0); // 使用(0,0)因为已经translate
       
       // 绘制文字
       this.ctx.fillStyle = text.color;
-      this.ctx.fillText(text.text, text.x, text.y);
+      this.ctx.fillText(text.text, 0, 0);
       
       this.ctx.restore();
     });
