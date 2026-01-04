@@ -20,11 +20,15 @@ export interface Player {
   targetX?: number; // 目标X坐标，用于平滑移动
   targetY?: number; // 目标Y坐标，用于平滑移动
   rotation?: number; // 角色旋转角度（弧度），剑锋指向鼠标
+  facingRight?: boolean; // 角色朝向：true=右，false=左
   width: number;
   height: number;
   image?: HTMLImageElement; // 玩家精灵图
   idleAnimation: number; // 待机动画计时器
-  attackAnimation?: number; // 放击动画计时器
+  attackAnimation?: number; // 攻击动画计时器
+  attackDashX?: number; // 攻击冲刺X方向
+  attackDashY?: number; // 攻击冲刺Y方向
+  attackDashDuration?: number; // 攻击冲刺持续时间
 }
 
 export interface Particle {
@@ -143,10 +147,14 @@ export class GameEngine {
       targetX: initialX,  // 初始目标位置
       targetY: initialY,
       rotation: 0,  // 初始朝向右
+      facingRight: true,  // 初始朝向右
       width: 80,
       height: 120,
       idleAnimation: oldIdleAnimation,
       attackAnimation: oldAttackAnimation,
+      attackDashX: 0,
+      attackDashY: 0,
+      attackDashDuration: 0,
       image: oldImage,
     };
   }
@@ -359,9 +367,17 @@ export class GameEngine {
     
     // 平滑移动玩家到目标位置
     if (this.player.targetX !== undefined && this.player.targetY !== undefined) {
-      const speed = 0.15; // 插值系数，越大越快
+      const speed = 0.08; // 降低插值系数，让移动更平滑
       this.player.x += (this.player.targetX - this.player.x) * speed;
       this.player.y += (this.player.targetY - this.player.y) * speed;
+      
+      // 攻击冲刺效果
+      if (this.player.attackDashDuration && this.player.attackDashDuration > 0) {
+        const dashProgress = this.player.attackDashDuration / 8; // 0.0 -> 1.0
+        this.player.x += (this.player.attackDashX || 0) * dashProgress * 0.3;
+        this.player.y += (this.player.attackDashY || 0) * dashProgress * 0.3;
+        this.player.attackDashDuration--;
+      }
       
       // 边界限制，确保角色不会移出画布
       this.player.x = Math.max(this.player.width / 2, Math.min(this.canvas.width - this.player.width / 2, this.player.x));
@@ -531,10 +547,22 @@ export class GameEngine {
     this.player.targetX = x;
     this.player.targetY = y;
     
-    // 计算角色旋转角度（剑锋指向鼠标）
+    // 计算角色旋转角度（剑锋指向鼠标），但限制在-30°到+30°范围内
     const dx = x - this.player.x;
     const dy = y - this.player.y;
-    this.player.rotation = Math.atan2(dy, dx);
+    let targetRotation = Math.atan2(dy, dx);
+    
+    // 限制旋转角度：-30° 到 +30°（-0.52 到 +0.52 弧度）
+    const maxRotation = Math.PI / 6; // 30°
+    targetRotation = Math.max(-maxRotation, Math.min(maxRotation, targetRotation));
+    this.player.rotation = targetRotation;
+    
+    // 更新角色朝向（根据鼠标相对位置）
+    if (dx > 20) {
+      this.player.facingRight = true;
+    } else if (dx < -20) {
+      this.player.facingRight = false;
+    }
 
     // 添加到轨迹
     this.swipeTrail.push({ x, y, time: Date.now() });
@@ -564,8 +592,19 @@ export class GameEngine {
           // 击中特效
           this.createParticles(enemy.x, enemy.y, enemy.color, 10);
           this.triggerScreenShake(5);
-          // 触发玩家攻击动画
+          // 触发玩家攻击动画和冲刺
           this.player.attackAnimation = 10;
+          
+          // 攻击冲刺：向敌人方向冲刺一小段距离
+          const dashDx = enemy.x - this.player.x;
+          const dashDy = enemy.y - this.player.y;
+          const dashDistance = Math.sqrt(dashDx * dashDx + dashDy * dashDy);
+          if (dashDistance > 0) {
+            const dashSpeed = 30; // 冲刺距离
+            this.player.attackDashX = (dashDx / dashDistance) * dashSpeed;
+            this.player.attackDashY = (dashDy / dashDistance) * dashSpeed;
+            this.player.attackDashDuration = 8; // 冲刺持续8帧
+          }
         }
         return false; // 移除敌人
       }
@@ -709,21 +748,32 @@ export class GameEngine {
       // 待机动画：上下浮动
       const idleOffset = Math.sin(this.player.idleAnimation) * 3;
       
-      // 攻击动画：缩放效果
+      // 攻击动画：缩放效果 + 闪光
       let attackScale = 1.0;
+      let attackGlow = 0;
       if (this.player.attackAnimation && this.player.attackAnimation > 0) {
-        attackScale = 1.0 + (this.player.attackAnimation / 10) * 0.2;
+        attackScale = 1.0 + (this.player.attackAnimation / 10) * 0.3; // 增强缩放效果
+        attackGlow = this.player.attackAnimation * 2; // 闪光效果
       }
       
-      // 只支持横屏：玩家跟随鼠标旋转
+      // 移动到玩家位置
       this.ctx.translate(this.player.x, this.player.y + idleOffset);
       
-      // 应用旋转（剑锋指向鼠标）
+      // 根据朝向翻转图片（左=-1，右=1）
+      const flipScale = this.player.facingRight ? 1 : -1;
+      this.ctx.scale(flipScale * attackScale, attackScale);
+      
+      // 应用轻微旋转（剑锋指向鼠标，但限制在-30°到+30°）
       if (this.player.rotation !== undefined) {
-        this.ctx.rotate(this.player.rotation);
+        this.ctx.rotate(this.player.rotation * flipScale); // 翻转时要反转角度
       }
       
-      this.ctx.scale(attackScale, attackScale);
+      // 攻击时添加闪光效果
+      if (attackGlow > 0) {
+        this.ctx.shadowColor = '#ffffff';
+        this.ctx.shadowBlur = attackGlow;
+      }
+      
       this.ctx.drawImage(
         this.player.image,
         -this.player.width / 2,
