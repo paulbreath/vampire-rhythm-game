@@ -275,7 +275,7 @@ export default function Game() {
           <div className="absolute inset-0 flex items-center justify-center bg-background/80">
             <div className="text-center space-y-4">
               <p className="text-xl animate-pulse">Press START to begin</p>
-              <p className="text-sm text-muted-foreground">Slash the vampires and bats!</p>
+              <p className="text-sm text-muted-foreground">Hunt your kin to the rhythm!</p>
               <p className="text-sm text-muted-foreground">Avoid the bombs!</p>
             </div>
           </div>

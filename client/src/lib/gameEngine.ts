@@ -187,7 +187,7 @@ export class GameEngine {
         console.error('Failed to load idle sprite sheet');
         reject(new Error('Idle sprite sheet load failed'));
       };
-      playerIdleImg.src = '/images/characters/blade-warrior-idle-spritesheet.png';
+      playerIdleImg.src = '/images/characters/hybrid-warrior-idle-spritesheet.png';
     });
     
     const attackPromise = new Promise<void>((resolve, reject) => {
@@ -199,7 +199,7 @@ export class GameEngine {
         console.error('Failed to load attack sprite sheet');
         reject(new Error('Attack sprite sheet load failed'));
       };
-      playerAttackImg.src = '/images/characters/blade-warrior-attack-spritesheet.png';
+      playerAttackImg.src = '/images/characters/hybrid-warrior-attack-spritesheet.png';
     });
     
     const fallbackPromise = new Promise<void>((resolve) => {
@@ -212,7 +212,7 @@ export class GameEngine {
         console.warn('Fallback image failed to load');
         resolve(); // 不阻塞
       };
-      playerFallbackImg.src = '/images/characters/blade-warrior-side.png';
+      playerFallbackImg.src = '/images/characters/hybrid-warrior-side.png';
     });
     
     imageLoadPromises.push(idlePromise, attackPromise, fallbackPromise);

@@ -33,7 +33,7 @@ export default function Home() {
             RHYTHM
           </h2>
           <p className="text-xs md:text-sm text-muted-foreground mt-6">
-            Blade of the Night
+            Hybrid Hunter's Requiem
           </p>
         </div>
 
