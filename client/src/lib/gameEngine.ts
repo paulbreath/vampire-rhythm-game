@@ -45,6 +45,17 @@ export interface Particle {
   size: number;
 }
 
+export interface HeartPickup {
+  id: number;
+  x: number;
+  y: number;
+  vx: number; // 水平速度
+  vy: number; // 垂直速度
+  size: number;
+  lifetime: number; // 存在时间（毫秒）
+  createdAt: number; // 创建时间戳
+}
+
 export interface FloatingText {
   x: number;
   y: number;
@@ -67,6 +78,8 @@ export class GameEngine {
   private player: Player;
   private particles: Particle[] = []; // 粒子系统
   private floatingTexts: FloatingText[] = []; // 浮动文字系统
+  private heartPickups: HeartPickup[] = []; // 心形道具系统
+  private nextHeartId: number = 1; // 心形道具ID计数器
   private screenShake: { x: number; y: number; duration: number } = { x: 0, y: 0, duration: 0 }; // 屏幕震动
   private score: number = 0;
   private combo: number = 0;
@@ -497,6 +510,9 @@ export class GameEngine {
       }
     }
     
+    // 更新心形道具
+    this.updateHeartPickups();
+    
     // 更新粒子
     this.particles = this.particles.filter(particle => {
       particle.x += particle.vx;
@@ -747,6 +763,62 @@ export class GameEngine {
     this.screenShake.duration = Math.max(this.screenShake.duration, duration);
   }
 
+  // 生成心形道具
+  private spawnHeartPickup(x: number, y: number): void {
+    const heart: HeartPickup = {
+      id: this.nextHeartId++,
+      x,
+      y,
+      vx: (Math.random() - 0.5) * 2, // 随机水平速度 -1 ~ 1
+      vy: -3, // 向上飞出
+      size: 20,
+      lifetime: 5000, // 5秒后消失
+      createdAt: Date.now(),
+    };
+    this.heartPickups.push(heart);
+  }
+
+  // 更新心形道具位置和拾取检测
+  private updateHeartPickups(): void {
+    const now = Date.now();
+    
+    this.heartPickups = this.heartPickups.filter(heart => {
+      // 更新位置
+      heart.x += heart.vx;
+      heart.y += heart.vy;
+      heart.vy += 0.2; // 重力加速度
+      
+      // 检查是否超时
+      if (now - heart.createdAt > heart.lifetime) {
+        return false;
+      }
+      
+      // 检查是否飞出屏幕
+      if (heart.x < -heart.size || heart.x > this.canvas.width + heart.size ||
+          heart.y < -heart.size || heart.y > this.canvas.height + heart.size) {
+        return false;
+      }
+      
+      // 检测与玩家的碰撞
+      const dx = heart.x - this.player.x;
+      const dy = heart.y - this.player.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distance < heart.size + 30) { // 30是玩家的碰撞半径
+        // 拾取心形道具
+        if (this.lives < this.maxLives) {
+          this.lives++;
+          this.onLivesChange?.(this.lives);
+          this.createFloatingText('+1 HP', heart.x, heart.y, '#FF69B4', 24); // 粉色
+          this.createParticles(heart.x, heart.y, '#FF69B4', 15); // 粉色粒子
+        }
+        return false; // 移除心形道具
+      }
+      
+      return true;
+    });
+  }
+
   private createFloatingText(text: string, x: number, y: number, color: string = '#FFD700', fontSize: number = 24, isCombo: boolean = false): void {
     this.floatingTexts.push({
       x,
@@ -799,6 +871,11 @@ export class GameEngine {
         // 屏幕震动（强度根据连击数增加）
         const shakeIntensity = Math.min(10 + this.combo / 2, 25); // 10-25强度
         this.triggerScreenShake(shakeIntensity);
+        
+        // 连击时有概率掉落心形道具（20%概率）
+        if (Math.random() < 0.2) {
+          this.spawnHeartPickup(x, y);
+        }
       }
     }
     
@@ -1007,6 +1084,57 @@ export class GameEngine {
       this.ctx.stroke();
             this.ctx.shadowBlur = 0;
     }
+    
+    // 绘制心形道具
+    this.heartPickups.forEach(heart => {
+      const now = Date.now();
+      const age = now - heart.createdAt;
+      const alpha = Math.min(1, (heart.lifetime - age) / 1000); // 最后1秒渐隐
+      
+      this.ctx.save();
+      this.ctx.globalAlpha = alpha;
+      
+      // 绘制心形（简单的粉色心形）
+      this.ctx.fillStyle = '#FF69B4';
+      this.ctx.strokeStyle = '#FF1493';
+      this.ctx.lineWidth = 2;
+      
+      // 绘制心形路径
+      this.ctx.beginPath();
+      const size = heart.size;
+      this.ctx.moveTo(heart.x, heart.y + size / 4);
+      this.ctx.bezierCurveTo(
+        heart.x, heart.y - size / 4,
+        heart.x - size / 2, heart.y - size / 2,
+        heart.x - size / 2, heart.y
+      );
+      this.ctx.bezierCurveTo(
+        heart.x - size / 2, heart.y + size / 4,
+        heart.x, heart.y + size / 2,
+        heart.x, heart.y + size
+      );
+      this.ctx.bezierCurveTo(
+        heart.x, heart.y + size / 2,
+        heart.x + size / 2, heart.y + size / 4,
+        heart.x + size / 2, heart.y
+      );
+      this.ctx.bezierCurveTo(
+        heart.x + size / 2, heart.y - size / 2,
+        heart.x, heart.y - size / 4,
+        heart.x, heart.y + size / 4
+      );
+      this.ctx.closePath();
+      
+      this.ctx.fill();
+      this.ctx.stroke();
+      
+      // 添加发光效果
+      this.ctx.shadowColor = '#FF69B4';
+      this.ctx.shadowBlur = 15;
+      this.ctx.fill();
+      
+      this.ctx.restore();
+    });
     
     // 绘制粒子
     this.particles.forEach(particle => {
