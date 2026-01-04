@@ -1,5 +1,6 @@
 import { AudioManager } from './audioManager';
 import { ChartData } from './chartLoader';
+import { SpriteAnimation, AnimationState, createPlayerAnimations } from './spriteAnimation';
 
 export interface Enemy {
   id: number;
@@ -24,11 +25,13 @@ export interface Player {
   width: number;
   height: number;
   image?: HTMLImageElement; // 玩家精灵图
-  idleAnimation: number; // 待机动画计时器
-  attackAnimation?: number; // 攻击动画计时器
+  idleAnimation: number; // 待机动画计时器（旧系统，保留兼容）
+  attackAnimation?: number; // 攻击动画计时器（旧系统，保留兼容）
   attackDashX?: number; // 攻击冲刺X方向
   attackDashY?: number; // 攻击冲刺Y方向
   attackDashDuration?: number; // 攻击冲刺持续时间
+  spriteAnimation?: any; // SpriteAnimation实例（新系统）
+  animationState?: string; // 当前动画状态名称（idle/attack/hit）
 }
 
 export interface Particle {
@@ -160,6 +163,7 @@ export class GameEngine {
   }
   
   private async loadAssets(): Promise<void> {
+    const imageLoadPromises: Promise<void>[] = [];
     // 加载背景
     const bgImg = new Image();
     bgImg.src = '/images/backgrounds/castle-bg.png';
@@ -168,13 +172,60 @@ export class GameEngine {
       console.log('Background loaded');
     };
     
-    // 加载玩家精灵
-    const playerImg = new Image();
-    playerImg.src = '/images/characters/blade-warrior-side.png';
-    playerImg.onload = () => {
-      this.player.image = playerImg;
-      console.log('Player sprite loaded');
-    };
+    // 加载玩家精灵 - 使用Promise确保加载完成
+    const playerIdleImg = new Image();
+    const playerAttackImg = new Image();
+    const playerFallbackImg = new Image();
+    
+    // 创建Promise数组
+    const idlePromise = new Promise<void>((resolve, reject) => {
+      playerIdleImg.onload = () => {
+        console.log('Player idle sprite sheet loaded');
+        resolve();
+      };
+      playerIdleImg.onerror = () => {
+        console.error('Failed to load idle sprite sheet');
+        reject(new Error('Idle sprite sheet load failed'));
+      };
+      playerIdleImg.src = '/images/characters/blade-warrior-idle-spritesheet.png';
+    });
+    
+    const attackPromise = new Promise<void>((resolve, reject) => {
+      playerAttackImg.onload = () => {
+        console.log('Player attack sprite sheet loaded');
+        resolve();
+      };
+      playerAttackImg.onerror = () => {
+        console.error('Failed to load attack sprite sheet');
+        reject(new Error('Attack sprite sheet load failed'));
+      };
+      playerAttackImg.src = '/images/characters/blade-warrior-attack-spritesheet.png';
+    });
+    
+    const fallbackPromise = new Promise<void>((resolve) => {
+      playerFallbackImg.onload = () => {
+        this.player.image = playerFallbackImg;
+        console.log('Player static sprite loaded (fallback)');
+        resolve();
+      };
+      playerFallbackImg.onerror = () => {
+        console.warn('Fallback image failed to load');
+        resolve(); // 不阻塞
+      };
+      playerFallbackImg.src = '/images/characters/blade-warrior-side.png';
+    });
+    
+    imageLoadPromises.push(idlePromise, attackPromise, fallbackPromise);
+    
+    // 等待sprite sheet加载完成后初始化动画
+    try {
+      await Promise.all([idlePromise, attackPromise]);
+      this.initializePlayerAnimation(playerIdleImg, playerAttackImg);
+      console.log('Player sprite animations initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize sprite animations:', error);
+      console.log('Falling back to static image');
+    }
     
     // 加载敌人精灵
     const enemyTypes: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb'];
@@ -195,6 +246,47 @@ export class GameEngine {
         console.log(`Enemy sprite loaded: ${type}`);
       };
     }
+  }
+  
+  private initializePlayerAnimation(idleImg: HTMLImageElement, attackImg: HTMLImageElement): void {
+    // 创建动画状态配置
+    const idleState: AnimationState = {
+      name: 'idle',
+      config: {
+        frameWidth: 200,
+        frameHeight: 200,
+        frameSequence: [0, 1, 2, 3], // 4帧待机动画
+        frameRate: 6, // 6帧/秒，缓慢呼吸
+        loop: true,
+        direction: 'horizontal'
+      }
+    };
+    
+    const attackState: AnimationState = {
+      name: 'attack',
+      config: {
+        frameWidth: 200,
+        frameHeight: 200,
+        frameSequence: [0, 1, 2, 3, 4, 5], // 6帧攻击动画
+        frameRate: 20, // 20帧/秒，快速攻击
+        loop: false,
+        direction: 'horizontal'
+      }
+    };
+    
+    // 创建两个动画实例
+    const idleAnimation = new SpriteAnimation(idleImg, idleState);
+    const attackAnimation = new SpriteAnimation(attackImg, attackState);
+    
+    // 存储到player对象
+    this.player.spriteAnimation = {
+      idle: idleAnimation,
+      attack: attackAnimation,
+      current: idleAnimation // 默认使用待机动画
+    };
+    this.player.animationState = 'idle';
+    
+    console.log('Player sprite animations initialized');
   }
 
   private resizeCanvas(): void {
@@ -384,10 +476,25 @@ export class GameEngine {
       this.player.y = Math.max(this.player.height / 2, Math.min(this.canvas.height - this.player.height / 2, this.player.y));
     }
     
-    // 更新玩家待机动画
+    // 更新玩家待机动画（旧系统）
     this.player.idleAnimation += 0.05;
     if (this.player.attackAnimation !== undefined && this.player.attackAnimation > 0) {
       this.player.attackAnimation--;
+    }
+    
+    // 更新sprite动画（新系统）
+    if (this.player.spriteAnimation) {
+      const dt = 1 / 60; // 假设60FPS，每帧约16.67ms
+      
+      // 更新当前动画
+      this.player.spriteAnimation.current.update(dt);
+      
+      // 如果政击动画播放完毕，切换回待机动画
+      if (this.player.animationState === 'attack' && 
+          this.player.spriteAnimation.current.isAnimationFinished()) {
+        this.player.spriteAnimation.current = this.player.spriteAnimation.idle;
+        this.player.animationState = 'idle';
+      }
     }
     
     // 更新粒子
@@ -595,6 +702,13 @@ export class GameEngine {
           // 触发玩家攻击动画和冲刺
           this.player.attackAnimation = 10;
           
+          // 触发sprite攻击动画（新系统）
+          if (this.player.spriteAnimation) {
+            this.player.spriteAnimation.current = this.player.spriteAnimation.attack;
+            this.player.spriteAnimation.current.reset(); // 重置动画到第一帧
+            this.player.animationState = 'attack';
+          }
+          
           // 攻击冲刺：向敌人方向冲刺一小段距离
           const dashDx = enemy.x - this.player.x;
           const dashDy = enemy.y - this.player.y;
@@ -741,32 +855,59 @@ export class GameEngine {
       this.ctx.drawImage(this.backgroundImage, x, y, scaledWidth, scaledHeight);
     }
     
-    // 绘制玩家
+    // 绘制玩家 - 使用静态图片 + 程序化动画
     if (this.player.image && this.player.image.complete) {
+      // 使用静态图片 + 程序化动画
       this.ctx.save();
       
-      // 待机动画：上下浮动
+      // 待机动画：轻微上下浮动
       const idleOffset = Math.sin(this.player.idleAnimation) * 3;
       
-      // 攻击动画：缩放效果 + 闪光
+      // 攻击动画：缩放 + 旋转 + 闪光
       let attackScale = 1.0;
+      let attackRotation = 0;
       let attackGlow = 0;
+      let attackOffset = 0; // 攻击时的位移
+      
       if (this.player.attackAnimation && this.player.attackAnimation > 0) {
-        attackScale = 1.0 + (this.player.attackAnimation / 10) * 0.3; // 增强缩放效果
-        attackGlow = this.player.attackAnimation * 2; // 闪光效果
+        const attackProgress = this.player.attackAnimation / 10; // 1.0 -> 0.0
+        
+        // 缩放效果：先放大再缩小
+        attackScale = 1.0 + Math.sin(attackProgress * Math.PI) * 0.3;
+        
+        // 旋转效果：模拟挥剑动作
+        // 从-30°快速旋转到+30°，再回到0°
+        if (attackProgress > 0.5) {
+          // 前半段：举剑 -30° -> +30°
+          attackRotation = -0.5 + (1 - attackProgress) * 2; // -0.5 -> 0.5 弧度
+        } else {
+          // 后半段：收剑 +30° -> 0°
+          attackRotation = attackProgress * 2; // 0.5 -> 0
+        }
+        
+        // 闪光效果
+        attackGlow = this.player.attackAnimation * 2;
+        
+        // 攻击时向前冲刺一小段距离
+        attackOffset = Math.sin(attackProgress * Math.PI) * 10;
       }
       
       // 移动到玩家位置
-      this.ctx.translate(this.player.x, this.player.y + idleOffset);
-      
-      // 根据朝向翻转图片（左=-1，右=1）
       const flipScale = this.player.facingRight ? 1 : -1;
+      this.ctx.translate(
+        this.player.x + attackOffset * flipScale, 
+        this.player.y + idleOffset
+      );
+      
+      // 应用缩放和翻转
       this.ctx.scale(flipScale * attackScale, attackScale);
       
-      // 应用轻微旋转（剑锋指向鼠标，但限制在-30°到+30°）
-      if (this.player.rotation !== undefined) {
-        this.ctx.rotate(this.player.rotation * flipScale); // 翻转时要反转角度
+      // 应用旋转（攻击动作 + 轻微指向）
+      let totalRotation = attackRotation;
+      if (this.player.rotation !== undefined && attackRotation === 0) {
+        totalRotation = this.player.rotation * flipScale;
       }
+      this.ctx.rotate(totalRotation);
       
       // 攻击时添加闪光效果
       if (attackGlow > 0) {
