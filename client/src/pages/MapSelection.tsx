@@ -320,7 +320,7 @@ export default function MapSelection() {
                             }
                           `}
                         >
-                          {config.label}
+                          {config.name}
                         </button>
                       );
                     })}
