@@ -786,7 +786,12 @@ export class GameEngine {
     
     // 只支持横屏：从右侧随机位置生成
     const x = this.canvas.width + size;
-    const y = Math.random() * (this.canvas.height - size * 2) + size;
+    // 限制敌人生成范围：避免在最上方和最下方生成（留出150像素的边距）
+    const topMargin = 150;
+    const bottomMargin = 150;
+    const minY = topMargin + size;
+    const maxY = this.canvas.height - bottomMargin - size;
+    const y = Math.random() * (maxY - minY) + minY;
     
     // 根据敌人类型分配移动模式
     let movementPattern: Enemy['movementPattern'] = 'linear';
