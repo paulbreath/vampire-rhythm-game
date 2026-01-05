@@ -1,16 +1,52 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
+import { GlassButton } from "@/components/ui/glass-button";
 import { leaderboardManager, type LeaderboardEntry } from "@/lib/leaderboardManager";
 
 export default function Leaderboard() {
   const [, setLocation] = useLocation();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [filter, setFilter] = useState<'all' | 'easy' | 'normal' | 'hard'>('all');
+  const [bats, setBats] = useState<Array<{ id: number; x: number; y: number; speed: number; direction: number }>>([]);
 
   useEffect(() => {
     loadLeaderboard();
   }, [filter]);
+
+  // 生成飘动的蝙蝠
+  useEffect(() => {
+    const newBats = Array.from({ length: 8 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      speed: 0.2 + Math.random() * 0.3,
+      direction: Math.random() * Math.PI * 2,
+    }));
+    setBats(newBats);
+
+    const interval = setInterval(() => {
+      setBats(prevBats =>
+        prevBats.map(bat => {
+          let newX = bat.x + Math.cos(bat.direction) * bat.speed;
+          let newY = bat.y + Math.sin(bat.direction) * bat.speed;
+          let newDirection = bat.direction;
+
+          if (newX < 0 || newX > 100) {
+            newDirection = Math.PI - newDirection;
+            newX = Math.max(0, Math.min(100, newX));
+          }
+          if (newY < 0 || newY > 100) {
+            newDirection = -newDirection;
+            newY = Math.max(0, Math.min(100, newY));
+          }
+
+          return { ...bat, x: newX, y: newY, direction: newDirection };
+        })
+      );
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const loadLeaderboard = () => {
     let data: LeaderboardEntry[];
@@ -48,141 +84,199 @@ export default function Leaderboard() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 60) return `${diffMins}分钟前`;
-    if (diffHours < 24) return `${diffHours}小时前`;
-    if (diffDays < 7) return `${diffDays}天前`;
-    return date.toLocaleDateString('zh-CN');
+    if (diffMins < 60) return `${diffMins} mins ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  };
+
+  const handleGenerateTestData = () => {
+    leaderboardManager.generateTestData();
+    loadLeaderboard();
+  };
+
+  const handleClearLeaderboard = () => {
+    leaderboardManager.clearLeaderboard();
+    loadLeaderboard();
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Gothic background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, currentColor 35px, currentColor 36px)`,
-        }} />
-      </div>
+    <div className="min-h-screen relative overflow-hidden bg-black">
+      {/* 暗色背景渐变 */}
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-950/50 via-black to-black" />
 
-      {/* Header */}
-      <div className="relative z-10 p-6 border-b-4 border-border bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto flex items-center justify-between">
-          <Button
+      {/* 飘动的蝙蝠 */}
+      {bats.map(bat => (
+        <div
+          key={bat.id}
+          className="absolute text-xl transition-all duration-1000 ease-linear opacity-30 z-10"
+          style={{
+            left: `${bat.x}%`,
+            top: `${bat.y}%`,
+            transform: `translate(-50%, -50%) scaleX(${Math.cos(bat.direction) > 0 ? 1 : -1})`,
+            textShadow: '0 0 10px rgba(255, 0, 100, 0.5)',
+          }}
+        >
+          🦇
+        </div>
+      ))}
+
+      {/* 顶部导航栏 */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b-2 border-yellow-600/30 p-4">
+        <div className="container flex items-center justify-between">
+          <GlassButton
             onClick={() => setLocation("/")}
-            className="pixel-button bg-secondary text-secondary-foreground"
             size="sm"
+            variant="secondary"
+            icon="←"
           >
-            ← 返回主菜单
-          </Button>
-          <h1 className="text-4xl glow-gold" style={{ fontFamily: 'Creepster, cursive' }}>
-            LEADERBOARD
+            BACK
+          </GlassButton>
+          
+          <h1 
+            className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500"
+            style={{ fontFamily: 'serif' }}
+          >
+            🏆 LEADERBOARD
           </h1>
-          <div className="w-32" /> {/* Spacer for centering */}
+          
+          <div className="w-24" />
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 container mx-auto p-6 space-y-6">
-        {/* Filter buttons */}
-        <div className="flex gap-4 justify-center">
-          <Button
+      {/* 主内容区域 */}
+      <div className="relative z-20 pt-24 pb-8 px-4 container">
+        {/* 筛选按钮 */}
+        <div className="flex gap-4 justify-center mb-8 flex-wrap">
+          <GlassButton
             onClick={() => setFilter('all')}
-            className={`pixel-button ${filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+            size="sm"
+            variant={filter === 'all' ? 'primary' : 'secondary'}
           >
-            全部
-          </Button>
-          <Button
+            ALL
+          </GlassButton>
+          <GlassButton
             onClick={() => setFilter('easy')}
-            className={`pixel-button ${filter === 'easy' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+            size="sm"
+            variant={filter === 'easy' ? 'primary' : 'secondary'}
           >
-            简单
-          </Button>
-          <Button
+            EASY
+          </GlassButton>
+          <GlassButton
             onClick={() => setFilter('normal')}
-            className={`pixel-button ${filter === 'normal' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+            size="sm"
+            variant={filter === 'normal' ? 'primary' : 'secondary'}
           >
-            普通
-          </Button>
-          <Button
+            NORMAL
+          </GlassButton>
+          <GlassButton
             onClick={() => setFilter('hard')}
-            className={`pixel-button ${filter === 'hard' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+            size="sm"
+            variant={filter === 'hard' ? 'primary' : 'secondary'}
           >
-            困难
-          </Button>
+            HARD
+          </GlassButton>
         </div>
 
-        {/* Leaderboard list */}
-        <div className="max-w-4xl mx-auto space-y-3">
+        {/* 排行榜列表 */}
+        <div className="max-w-4xl mx-auto space-y-4">
           {leaderboard.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-2xl text-muted-foreground">暂无排行榜数据</p>
-              <p className="text-sm text-muted-foreground mt-2">完成游戏关卡后，您的成绩将出现在这里</p>
+              <p className="text-gray-400 text-lg mb-4">No records yet</p>
+              <GlassButton
+                onClick={handleGenerateTestData}
+                size="md"
+                variant="secondary"
+                icon="🎲"
+              >
+                GENERATE TEST DATA
+              </GlassButton>
             </div>
           ) : (
-            leaderboard.map((entry, index) => (
-              <div
-                key={index}
-                className={`
-                  p-4 bg-card border-2 rounded-lg flex items-center gap-4
-                  ${entry.rank <= 3 ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-border'}
-                  hover:bg-card/80 transition-colors
-                `}
-              >
-                {/* Rank */}
-                <div className="flex flex-col items-center min-w-[60px]">
-                  <div className="text-3xl">{getRankIcon(entry.rank)}</div>
+            <>
+              {leaderboard.map((entry, index) => {
+                const rank = index + 1;
+                const rankColor = getRankColor(rank);
+                const rankIcon = getRankIcon(rank);
+
+                return (
                   <div
-                    className="text-xl font-bold"
-                    style={{ color: getRankColor(entry.rank) }}
+                    key={entry.id}
+                    className="bg-black/60 backdrop-blur-sm border-2 rounded-lg p-4 transition-all hover:scale-105"
+                    style={{
+                      borderColor: rank <= 3 ? rankColor : 'rgba(107, 114, 128, 0.5)',
+                      boxShadow: rank <= 3 ? `0 0 20px ${rankColor}40` : 'none',
+                    }}
                   >
-                    #{entry.rank}
-                  </div>
-                </div>
+                    <div className="flex items-center gap-4">
+                      {/* 排名 */}
+                      <div 
+                        className="flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold"
+                        style={{
+                          backgroundColor: `${rankColor}20`,
+                          border: `3px solid ${rankColor}`,
+                          color: rankColor,
+                          textShadow: `0 0 10px ${rankColor}`,
+                        }}
+                      >
+                        {rankIcon}
+                      </div>
 
-                {/* Player info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-2xl">{entry.playerAvatar}</span>
-                    <span className="text-lg font-bold truncate">{entry.playerName}</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {entry.stageName} · {entry.difficulty.toUpperCase()} · {formatDate(entry.timestamp)}
-                  </div>
-                </div>
+                      {/* 玩家信息 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-2xl">{entry.avatar}</span>
+                          <span className="text-white font-bold text-lg truncate">
+                            {entry.playerName}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-3 text-sm text-gray-400">
+                          <span>🗡️ {entry.stageName}</span>
+                          <span>⚔️ {entry.difficulty.toUpperCase()}</span>
+                          <span>🔥 {entry.combo}x Combo</span>
+                          <span>🕐 {formatDate(entry.timestamp)}</span>
+                        </div>
+                      </div>
 
-                {/* Stats */}
-                <div className="text-right">
-                  <div className="text-2xl glow-gold font-bold">
-                    {formatScore(entry.score)}
+                      {/* 分数 */}
+                      <div className="flex-shrink-0 text-right">
+                        <div 
+                          className="text-3xl font-bold"
+                          style={{
+                            color: rankColor,
+                            textShadow: `0 0 15px ${rankColor}`,
+                          }}
+                        >
+                          {formatScore(entry.score)}
+                        </div>
+                        <div className="text-xs text-gray-500">SCORE</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Combo: <span className="glow-purple">{entry.combo}x</span>
-                  </div>
-                </div>
+                );
+              })}
+
+              {/* 测试按钮 */}
+              <div className="flex gap-4 justify-center mt-8">
+                <GlassButton
+                  onClick={handleGenerateTestData}
+                  size="sm"
+                  variant="danger"
+                  icon="🎲"
+                >
+                  GENERATE TEST DATA
+                </GlassButton>
+                <GlassButton
+                  onClick={handleClearLeaderboard}
+                  size="sm"
+                  variant="danger"
+                  icon="🗑️"
+                >
+                  CLEAR ALL
+                </GlassButton>
               </div>
-            ))
+            </>
           )}
-        </div>
-
-        {/* Test buttons */}
-        <div className="flex gap-4 justify-center pt-6">
-          <Button
-            onClick={() => {
-              leaderboardManager.generateTestData();
-              loadLeaderboard();
-            }}
-            className="pixel-button bg-accent text-accent-foreground text-xs"
-          >
-            生成测试数据
-          </Button>
-          <Button
-            onClick={() => {
-              leaderboardManager.clearLeaderboard();
-              loadLeaderboard();
-            }}
-            className="pixel-button bg-destructive text-destructive-foreground text-xs"
-          >
-            清空排行榜
-          </Button>
         </div>
       </div>
     </div>

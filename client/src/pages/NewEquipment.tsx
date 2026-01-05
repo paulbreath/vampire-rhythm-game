@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
+import { GlassButton } from "@/components/ui/glass-button";
 import { newEquipmentManager } from "@/lib/newEquipmentManager";
 import { WEAPONS, ARMORS, RARITY_CONFIG } from "@/data/newEquipmentData";
 import type { Weapon, Armor } from "@/types/equipment";
@@ -11,6 +11,7 @@ export default function NewEquipment() {
   const [selectedArmor, setSelectedArmor] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'weapon' | 'armor'>('all');
   const [stats, setStats] = useState(newEquipmentManager.getPlayerStats());
+  const [bats, setBats] = useState<Array<{ id: number; x: number; y: number; speed: number; direction: number }>>([]);
 
   useEffect(() => {
     // 加载当前装备
@@ -19,29 +20,50 @@ export default function NewEquipment() {
     setSelectedArmor(loadout.armor?.id || null);
   }, []);
 
+  // 生成飘动的蝙蝠
+  useEffect(() => {
+    const newBats = Array.from({ length: 8 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      speed: 0.2 + Math.random() * 0.3,
+      direction: Math.random() * Math.PI * 2,
+    }));
+    setBats(newBats);
+
+    const interval = setInterval(() => {
+      setBats(prevBats =>
+        prevBats.map(bat => {
+          let newX = bat.x + Math.cos(bat.direction) * bat.speed;
+          let newY = bat.y + Math.sin(bat.direction) * bat.speed;
+          let newDirection = bat.direction;
+
+          if (newX < 0 || newX > 100) {
+            newDirection = Math.PI - newDirection;
+            newX = Math.max(0, Math.min(100, newX));
+          }
+          if (newY < 0 || newY > 100) {
+            newDirection = -newDirection;
+            newY = Math.max(0, Math.min(100, newY));
+          }
+
+          return { ...bat, x: newX, y: newY, direction: newDirection };
+        })
+      );
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const handleEquipWeapon = (weaponId: string) => {
     newEquipmentManager.equipWeapon(weaponId);
     setSelectedWeapon(weaponId);
     setStats(newEquipmentManager.getPlayerStats());
   };
 
-  const handleUnequipWeapon = () => {
-    // 装备默认武器
-    newEquipmentManager.equipWeapon('dagger');
-    setSelectedWeapon('dagger');
-    setStats(newEquipmentManager.getPlayerStats());
-  };
-
   const handleEquipArmor = (armorId: string) => {
     newEquipmentManager.equipArmor(armorId);
     setSelectedArmor(armorId);
-    setStats(newEquipmentManager.getPlayerStats());
-  };
-
-  const handleUnequipArmor = () => {
-    // 装备默认防具
-    newEquipmentManager.equipArmor('cloth_armor');
-    setSelectedArmor('cloth_armor');
     setStats(newEquipmentManager.getPlayerStats());
   };
 
@@ -58,241 +80,274 @@ export default function NewEquipment() {
     return config?.color || '#ffffff';
   };
 
+  const filteredWeapons = filter === 'armor' ? [] : Object.values(WEAPONS);
+  const filteredArmors = filter === 'weapon' ? [] : Object.values(ARMORS);
+
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Gothic pixel background */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            repeating-linear-gradient(0deg, transparent, transparent 8px, currentColor 8px, currentColor 9px),
-            repeating-linear-gradient(90deg, transparent, transparent 8px, currentColor 8px, currentColor 9px)
-          `,
-        }} />
-      </div>
+    <div className="min-h-screen relative overflow-hidden bg-black">
+      {/* 暗色背景渐变 */}
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-950/50 via-black to-black" />
 
-      {/* Floating bats */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute text-4xl animate-pulse"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${3 + Math.random() * 2}s`
-            }}
-          >
-            🦇
-          </div>
-        ))}
-      </div>
+      {/* 飘动的蝙蝠 */}
+      {bats.map(bat => (
+        <div
+          key={bat.id}
+          className="absolute text-xl transition-all duration-1000 ease-linear opacity-30 z-10"
+          style={{
+            left: `${bat.x}%`,
+            top: `${bat.y}%`,
+            transform: `translate(-50%, -50%) scaleX(${Math.cos(bat.direction) > 0 ? 1 : -1})`,
+            textShadow: '0 0 10px rgba(255, 0, 100, 0.5)',
+          }}
+        >
+          🦇
+        </div>
+      ))}
 
-      {/* Header */}
-      <div className="relative z-10 p-6 border-b-4 border-border bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto flex items-center justify-between">
-          <Button
+      {/* 顶部导航栏 */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b-2 border-yellow-600/30 p-4">
+        <div className="container flex items-center justify-between">
+          <GlassButton
             onClick={() => setLocation("/")}
-            className="pixel-button bg-secondary text-secondary-foreground"
             size="sm"
+            variant="secondary"
+            icon="←"
           >
-            ← 返回主菜单
-          </Button>
-          <h1 className="text-4xl glow-red" style={{ fontFamily: 'Creepster, cursive' }}>
-            EQUIPMENT
+            BACK
+          </GlassButton>
+          
+          <h1 
+            className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500"
+            style={{ fontFamily: 'serif' }}
+          >
+            ⚔️ EQUIPMENT
           </h1>
-          <div className="w-32" /> {/* Spacer */}
+          
+          <div className="w-24" />
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 container mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Current Equipment */}
-          <div className="lg:col-span-1 space-y-4">
-            <div className="bg-card border-4 border-border rounded-lg p-6">
-              <h2 className="text-2xl glow-purple mb-4" style={{ fontFamily: 'Creepster, cursive' }}>
-                Current Loadout
-              </h2>
+      {/* 主内容区域 */}
+      <div className="relative z-20 pt-24 pb-8 px-4 container">
+        {/* 当前装备状态 */}
+        <div className="mb-8 bg-black/60 backdrop-blur-sm border-2 border-yellow-600/50 rounded-lg p-6">
+          <h2 
+            className="text-2xl font-bold text-yellow-400 mb-4 text-center"
+            style={{ fontFamily: 'serif', textShadow: '0 0 10px rgba(255, 215, 0, 0.5)' }}
+          >
+            CURRENT LOADOUT
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* 武器槽 */}
+            <div className="bg-red-900/30 border-2 border-red-600/50 rounded-lg p-4">
+              <p className="text-red-400 text-sm font-bold mb-2 text-center">WEAPON</p>
+              {selectedWeapon && WEAPONS[selectedWeapon as keyof typeof WEAPONS] ? (
+                <div className="text-center">
+                  <div className="text-5xl mb-2">{WEAPONS[selectedWeapon as keyof typeof WEAPONS].icon}</div>
+                  <p className="text-white font-bold">{WEAPONS[selectedWeapon as keyof typeof WEAPONS].name}</p>
+                  <p 
+                    className="text-xs mt-1"
+                    style={{ color: getRarityColor(WEAPONS[selectedWeapon as keyof typeof WEAPONS].rarity) }}
+                  >
+                    {WEAPONS[selectedWeapon as keyof typeof WEAPONS].rarity.toUpperCase()}
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center text-gray-500">
+                  <div className="text-5xl mb-2">❓</div>
+                  <p>No Weapon</p>
+                </div>
+              )}
+            </div>
 
-              {/* Weapon Slot */}
-              <div className="mb-6">
-                <div className="text-sm text-muted-foreground mb-2">⚔️ WEAPON</div>
-                {selectedWeapon ? (
-                  <div className="bg-background border-2 rounded-lg p-4">
-                    {(() => {
-                      const weapon = WEAPONS.find(w => w.id === selectedWeapon);
-                      if (!weapon) return null;
-                      return (
-                        <>
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-3xl">{weapon.icon}</span>
-                              <div>
-                                <div className="font-bold" style={{ color: getRarityColor(weapon.rarity) }}>
-                                  {weapon.nameZh}
-                                </div>
-                                <div className="text-xs text-muted-foreground">{weapon.name}</div>
-                              </div>
-                            </div>
-                            <Button
-                              onClick={handleUnequipWeapon}
-                              className="pixel-button bg-destructive text-destructive-foreground"
-                              size="sm"
-                            >
-                              卸载
-                            </Button>
-                          </div>
-                          <div className="text-xs text-muted-foreground">{weapon.description}</div>
-                        </>
-                      );
-                    })()}
-                  </div>
-                ) : (
-                  <div className="bg-background border-2 border-dashed border-border rounded-lg p-4 text-center text-muted-foreground">
-                    未装备武器
-                  </div>
-                )}
-              </div>
+            {/* 防具槽 */}
+            <div className="bg-blue-900/30 border-2 border-blue-600/50 rounded-lg p-4">
+              <p className="text-blue-400 text-sm font-bold mb-2 text-center">ARMOR</p>
+              {selectedArmor && ARMORS[selectedArmor as keyof typeof ARMORS] ? (
+                <div className="text-center">
+                  <div className="text-5xl mb-2">{ARMORS[selectedArmor as keyof typeof ARMORS].icon}</div>
+                  <p className="text-white font-bold">{ARMORS[selectedArmor as keyof typeof ARMORS].name}</p>
+                  <p 
+                    className="text-xs mt-1"
+                    style={{ color: getRarityColor(ARMORS[selectedArmor as keyof typeof ARMORS].rarity) }}
+                  >
+                    {ARMORS[selectedArmor as keyof typeof ARMORS].rarity.toUpperCase()}
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center text-gray-500">
+                  <div className="text-5xl mb-2">❓</div>
+                  <p>No Armor</p>
+                </div>
+              )}
+            </div>
 
-              {/* Armor Slot */}
-              <div className="mb-6">
-                <div className="text-sm text-muted-foreground mb-2">🛡️ ARMOR</div>
-                {selectedArmor ? (
-                  <div className="bg-background border-2 rounded-lg p-4">
-                    {(() => {
-                      const armor = ARMORS.find(a => a.id === selectedArmor);
-                      if (!armor) return null;
-                      return (
-                        <>
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-3xl">{armor.icon}</span>
-                              <div>
-                                <div className="font-bold" style={{ color: getRarityColor(armor.rarity) }}>
-                                  {armor.nameZh}
-                                </div>
-                                <div className="text-xs text-muted-foreground">{armor.name}</div>
-                              </div>
-                            </div>
-                            <Button
-                              onClick={handleUnequipArmor}
-                              className="pixel-button bg-destructive text-destructive-foreground"
-                              size="sm"
-                            >
-                              卸载
-                            </Button>
-                          </div>
-                          <div className="text-xs text-muted-foreground">{armor.description}</div>
-                        </>
-                      );
-                    })()}
-                  </div>
-                ) : (
-                  <div className="bg-background border-2 border-dashed border-border rounded-lg p-4 text-center text-muted-foreground">
-                    未装备防具
-                  </div>
-                )}
-              </div>
-
-              {/* Stats */}
-              <div className="bg-background border-2 border-border rounded-lg p-4">
-                <div className="text-sm text-muted-foreground mb-2">总属性</div>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span>❤️ 最大生命值</span>
-                    <span className="glow-red font-bold">{stats.maxHearts}</span>
-                  </div>
+            {/* 总属性 */}
+            <div className="bg-purple-900/30 border-2 border-purple-600/50 rounded-lg p-4">
+              <p className="text-purple-400 text-sm font-bold mb-2 text-center">TOTAL STATS</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Max HP:</span>
+                  <span className="text-white font-bold">{stats.maxHearts} ❤️</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Attack:</span>
+                  <span className="text-white font-bold">{selectedWeapon ? WEAPONS[selectedWeapon as keyof typeof WEAPONS].name : 'None'}</span>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Right: Equipment List */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* Filter */}
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setFilter('all')}
-                className={`pixel-button ${filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
-                size="sm"
-              >
-                全部
-              </Button>
-              <Button
-                onClick={() => setFilter('weapon')}
-                className={`pixel-button ${filter === 'weapon' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
-                size="sm"
-              >
-                武器
-              </Button>
-              <Button
-                onClick={() => setFilter('armor')}
-                className={`pixel-button ${filter === 'armor' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
-                size="sm"
-              >
-                防具
-              </Button>
-            </div>
+        {/* 筛选按钮 */}
+        <div className="flex gap-4 mb-6 justify-center">
+          <GlassButton
+            onClick={() => setFilter('all')}
+            size="sm"
+            variant={filter === 'all' ? 'primary' : 'secondary'}
+          >
+            ALL
+          </GlassButton>
+          <GlassButton
+            onClick={() => setFilter('weapon')}
+            size="sm"
+            variant={filter === 'weapon' ? 'primary' : 'secondary'}
+            icon="⚔️"
+          >
+            WEAPONS
+          </GlassButton>
+          <GlassButton
+            onClick={() => setFilter('armor')}
+            size="sm"
+            variant={filter === 'armor' ? 'primary' : 'secondary'}
+            icon="🛡️"
+          >
+            ARMORS
+          </GlassButton>
+        </div>
 
-            {/* Equipment Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {/* Weapons */}
-              {(filter === 'all' || filter === 'weapon') && WEAPONS.map((weapon) => {
-                const unlocked = isWeaponUnlocked(weapon.id);
-                const equipped = selectedWeapon === weapon.id;
-                return (
-                  <div
-                    key={weapon.id}
-                    className={`
-                      bg-card border-2 rounded-lg p-4 cursor-pointer transition-all
-                      ${equipped ? 'border-yellow-500 bg-yellow-500/10' : 'border-border hover:border-primary'}
-                      ${!unlocked ? 'opacity-50' : ''}
-                    `}
-                    onClick={() => unlocked && !equipped && handleEquipWeapon(weapon.id)}
+        {/* 装备列表 */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {/* 武器列表 */}
+          {filteredWeapons.map((weapon) => {
+            const isUnlocked = isWeaponUnlocked(weapon.id);
+            const isEquipped = selectedWeapon === weapon.id;
+
+            return (
+              <button
+                key={weapon.id}
+                onClick={() => isUnlocked && handleEquipWeapon(weapon.id)}
+                disabled={!isUnlocked}
+                className={`
+                  relative p-4 rounded-lg border-2 transition-all
+                  ${isEquipped 
+                    ? 'bg-yellow-900/50 border-yellow-500 scale-105' 
+                    : isUnlocked 
+                      ? 'bg-red-900/30 border-red-600/50 hover:border-red-500 hover:scale-105' 
+                      : 'bg-gray-800/30 border-gray-600 opacity-50 cursor-not-allowed'
+                  }
+                `}
+                style={{
+                  boxShadow: isEquipped ? '0 0 20px rgba(255, 215, 0, 0.5)' : 'none',
+                }}
+              >
+                {/* 装备图标 */}
+                <div className="text-6xl mb-2 text-center">
+                  {isUnlocked ? weapon.icon : '🔒'}
+                </div>
+
+                {/* 装备名称 */}
+                <p className="text-white font-bold text-sm text-center mb-1">
+                  {isUnlocked ? weapon.name : '???'}
+                </p>
+
+                {/* 稀有度 */}
+                {isUnlocked && (
+                  <p 
+                    className="text-xs text-center font-bold"
+                    style={{ color: getRarityColor(weapon.rarity) }}
                   >
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">{weapon.icon}</div>
-                      <div className="font-bold text-sm" style={{ color: getRarityColor(weapon.rarity) }}>
-                        {weapon.nameZh}
-                      </div>
-                      <div className="text-xs text-muted-foreground mb-2">{weapon.name}</div>
-                      {!unlocked && <div className="text-xs text-red-400">🔒 未解锁</div>}
-                      {equipped && <div className="text-xs text-green-400">✓ 已装备</div>}
-                    </div>
-                  </div>
-                );
-              })}
+                    {weapon.rarity.toUpperCase()}
+                  </p>
+                )}
 
-              {/* Armors */}
-              {(filter === 'all' || filter === 'armor') && ARMORS.map((armor) => {
-                const unlocked = isArmorUnlocked(armor.id);
-                const equipped = selectedArmor === armor.id;
-                return (
-                  <div
-                    key={armor.id}
-                    className={`
-                      bg-card border-2 rounded-lg p-4 cursor-pointer transition-all
-                      ${equipped ? 'border-yellow-500 bg-yellow-500/10' : 'border-border hover:border-primary'}
-                      ${!unlocked ? 'opacity-50' : ''}
-                    `}
-                    onClick={() => unlocked && !equipped && handleEquipArmor(armor.id)}
-                  >
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">{armor.icon}</div>
-                      <div className="font-bold text-sm" style={{ color: getRarityColor(armor.rarity) }}>
-                        {armor.nameZh}
-                      </div>
-                      <div className="text-xs text-muted-foreground mb-2">{armor.name}</div>
-                      <div className="text-xs text-yellow-400">+{armor.hpBonus}❤️</div>
-                      {!unlocked && <div className="text-xs text-red-400">🔒 未解锁</div>}
-                      {equipped && <div className="text-xs text-green-400">✓ 已装备</div>}
-                    </div>
+                {/* 已装备标记 */}
+                {isEquipped && (
+                  <div className="absolute top-2 right-2 text-yellow-400 text-xl">
+                    ✓
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                )}
+
+                {/* 描述 */}
+                {isUnlocked && (
+                  <p className="text-xs text-gray-400 text-center mt-2">
+                    {weapon.description}
+                  </p>
+                )}
+              </button>
+            );
+          })}
+
+          {/* 防具列表 */}
+          {filteredArmors.map((armor) => {
+            const isUnlocked = isArmorUnlocked(armor.id);
+            const isEquipped = selectedArmor === armor.id;
+
+            return (
+              <button
+                key={armor.id}
+                onClick={() => isUnlocked && handleEquipArmor(armor.id)}
+                disabled={!isUnlocked}
+                className={`
+                  relative p-4 rounded-lg border-2 transition-all
+                  ${isEquipped 
+                    ? 'bg-yellow-900/50 border-yellow-500 scale-105' 
+                    : isUnlocked 
+                      ? 'bg-blue-900/30 border-blue-600/50 hover:border-blue-500 hover:scale-105' 
+                      : 'bg-gray-800/30 border-gray-600 opacity-50 cursor-not-allowed'
+                  }
+                `}
+                style={{
+                  boxShadow: isEquipped ? '0 0 20px rgba(255, 215, 0, 0.5)' : 'none',
+                }}
+              >
+                {/* 装备图标 */}
+                <div className="text-6xl mb-2 text-center">
+                  {isUnlocked ? armor.icon : '🔒'}
+                </div>
+
+                {/* 装备名称 */}
+                <p className="text-white font-bold text-sm text-center mb-1">
+                  {isUnlocked ? armor.name : '???'}
+                </p>
+
+                {/* 稀有度 */}
+                {isUnlocked && (
+                  <p 
+                    className="text-xs text-center font-bold"
+                    style={{ color: getRarityColor(armor.rarity) }}
+                  >
+                    {armor.rarity.toUpperCase()}
+                  </p>
+                )}
+
+                {/* 已装备标记 */}
+                {isEquipped && (
+                  <div className="absolute top-2 right-2 text-yellow-400 text-xl">
+                    ✓
+                  </div>
+                )}
+
+                {/* 描述 */}
+                {isUnlocked && (
+                  <p className="text-xs text-gray-400 text-center mt-2">
+                    {armor.description}
+                  </p>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
