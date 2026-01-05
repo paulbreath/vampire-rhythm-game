@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import { GlassButton } from '@/components/ui/glass-button';
 import { getUIIconStyle } from '@/lib/pixelIcons';
-import { VampireHeroSprite } from '@/components/VampireHeroSprite';
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -81,30 +80,9 @@ export default function Home() {
         </div>
       ))}
 
-      {/* 主内容 */}
-      <div className="relative z-10 min-h-screen flex items-center justify-between px-4 lg:px-16">
-        {/* 左侧：主角动画 */}
-        <div className="hidden lg:flex items-end justify-start w-1/2 h-screen pb-32">
-          <div className="relative">
-            <VampireHeroSprite
-              animation="idle"
-              width={300}
-              height={450}
-              className="drop-shadow-2xl"
-            />
-            {/* 主角名称标签 */}
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-              <div className="px-6 py-2 bg-black/80 border-2 border-amber-500/50 rounded-lg">
-                <p className="text-amber-400 font-bold text-lg tracking-wider" style={{ fontFamily: 'monospace' }}>
-                  ALUCARD
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 右侧：菜单按钮 */}
-        <div className="flex flex-col gap-6 w-full lg:w-1/2 max-w-md lg:max-w-lg pb-20 lg:pb-0">
+      {/* 主内容 - 右侧按钮区域 */}
+      <div className="relative z-10 min-h-screen flex items-center justify-end px-4 lg:px-16">
+        <div className="flex flex-col gap-6 w-full max-w-md lg:max-w-lg pb-20 lg:pb-0">
           {/* START GAME - 主要按钮 */}
           <GlassButton
             onClick={() => setLocation("/game")}

@@ -4,6 +4,7 @@ import { SpriteAnimation, AnimationState, createPlayerAnimations } from './sprit
 import { experienceManager, type PlayerStats } from './experienceManager';
 import { newEquipmentManager } from './newEquipmentManager';
 import { WeaponConfig } from '../types/equipment';
+import { vampireHeroAnimations } from '../data/vampireHeroAnimations';
 
 export interface Enemy {
   id: number;
@@ -194,7 +195,9 @@ export class GameEngine {
     const width = this.canvas.width || window.innerWidth;
     const height = this.canvas.height || window.innerHeight;
     
-    // 保留已加载的图片和动画状态
+    // 保留已加载的精灵动画
+    const oldSpriteAnimation = this.player?.spriteAnimation;
+    const oldAnimationState = this.player?.animationState || 'idle';
     const oldImage = this.player?.image;
     const oldIdleAnimation = this.player?.idleAnimation || 0;
     const oldAttackAnimation = this.player?.attackAnimation;
@@ -217,6 +220,8 @@ export class GameEngine {
       attackDashY: 0,
       attackDashDuration: 0,
       image: oldImage,
+      spriteAnimation: oldSpriteAnimation,
+      animationState: oldAnimationState,
     };
   }
   
@@ -230,16 +235,39 @@ export class GameEngine {
       console.log('Background loaded');
     };
     
-    // 加载玩家静态精灵图
-    const playerImg = new Image();
-    playerImg.onload = () => {
-      this.player.image = playerImg;
-      console.log('Player static sprite loaded');
+    // 加载玩家精灵动画
+    const idleImg = new Image();
+    const attackImg = new Image();
+    const hurtImg = new Image();
+    
+    let loadedCount = 0;
+    const checkAllLoaded = () => {
+      loadedCount++;
+      if (loadedCount === 3) {
+        this.initializePlayerAnimation(idleImg, attackImg, hurtImg);
+      }
     };
-    playerImg.onerror = () => {
-      console.error('Failed to load player sprite');
+    
+    idleImg.onload = () => {
+      console.log('Player IDLE sprite loaded');
+      checkAllLoaded();
     };
-    playerImg.src = '/images/characters/castlevania-hero-side.png';
+    idleImg.onerror = () => console.error('Failed to load IDLE sprite');
+    idleImg.src = '/images/vampire-hero-idle-v3.png';
+    
+    attackImg.onload = () => {
+      console.log('Player ATTACK sprite loaded');
+      checkAllLoaded();
+    };
+    attackImg.onerror = () => console.error('Failed to load ATTACK sprite');
+    attackImg.src = '/images/vampire-hero-attack-v2.png';
+    
+    hurtImg.onload = () => {
+      console.log('Player HURT sprite loaded');
+      checkAllLoaded();
+    };
+    hurtImg.onerror = () => console.error('Failed to load HURT sprite');
+    hurtImg.src = '/images/vampire-hero-hurt-v2.png';
     
     // 加载敌人精灵
     const enemyTypes: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb', 'skeleton', 'ghost', 'werewolf', 'medusa_head', 'crow'];
@@ -267,45 +295,22 @@ export class GameEngine {
     }
   }
   
-  private initializePlayerAnimation(idleImg: HTMLImageElement, attackImg: HTMLImageElement): void {
-    // 创建动画状态配置
-    const idleState: AnimationState = {
-      name: 'idle',
-      config: {
-        frameWidth: 200,
-        frameHeight: 200,
-        frameSequence: [0, 1, 2, 3], // 4帧待机动画
-        frameRate: 6, // 6帧/秒，缓慢呼吸
-        loop: true,
-        direction: 'horizontal'
-      }
-    };
-    
-    const attackState: AnimationState = {
-      name: 'attack',
-      config: {
-        frameWidth: 200,
-        frameHeight: 200,
-        frameSequence: [0, 1, 2, 3, 4, 5], // 6帧攻击动画
-        frameRate: 20, // 20帧/秒，快速攻击
-        loop: false,
-        direction: 'horizontal'
-      }
-    };
-    
-    // 创建两个动画实例
-    const idleAnimation = new SpriteAnimation(idleImg, idleState);
-    const attackAnimation = new SpriteAnimation(attackImg, attackState);
+  private initializePlayerAnimation(idleImg: HTMLImageElement, attackImg: HTMLImageElement, hurtImg: HTMLImageElement): void {
+    // 使用vampireHeroAnimations配置
+    const idleAnimation = new SpriteAnimation(idleImg, vampireHeroAnimations.idle);
+    const attackAnimation = new SpriteAnimation(attackImg, vampireHeroAnimations.attack);
+    const hurtAnimation = new SpriteAnimation(hurtImg, vampireHeroAnimations.hurt);
     
     // 存储到player对象
     this.player.spriteAnimation = {
       idle: idleAnimation,
       attack: attackAnimation,
+      hurt: hurtAnimation,
       current: idleAnimation // 默认使用待机动画
     };
     this.player.animationState = 'idle';
     
-    console.log('Player sprite animations initialized');
+    console.log('Player sprite animations initialized (IDLE/ATTACK/HURT)');
   }
 
   private resizeCanvas(): void {
@@ -592,14 +597,18 @@ export class GameEngine {
     if (this.player.spriteAnimation) {
       const dt = 1 / 60; // 假设60FPS，每帧约16.67ms
       
-      // 更新当前动画
-      this.player.spriteAnimation.current.update(dt);
-      
-      // 如果政击动画播放完毕，切换回待机动画
-      if (this.player.animationState === 'attack' && 
-          this.player.spriteAnimation.current.isAnimationFinished()) {
-        this.player.spriteAnimation.current = this.player.spriteAnimation.idle;
-        this.player.animationState = 'idle';
+      // 更新当前动画状态的动画
+      const currentState = this.player.animationState || 'idle';
+      const currentAnim = this.player.spriteAnimation[currentState];
+      if (currentAnim) {
+        currentAnim.update(dt);
+        
+        // 如果攻击或受伤动画播放完毕，切换回待机动画
+        if ((currentState === 'attack' || currentState === 'hurt') && currentAnim.isAnimationFinished()) {
+          this.player.animationState = 'idle';
+          // 重置动画
+          currentAnim.reset();
+        }
       }
     }
     
@@ -900,9 +909,8 @@ export class GameEngine {
           
           // 触发玩家攻击动画
           this.player.attackAnimation = 10;
-          if (this.player.spriteAnimation) {
-            this.player.spriteAnimation.current = this.player.spriteAnimation.attack;
-            this.player.spriteAnimation.current.reset();
+          if (this.player.spriteAnimation && this.player.spriteAnimation.attack) {
+            this.player.spriteAnimation.attack.reset();
             this.player.animationState = 'attack';
           }
           
@@ -943,10 +951,9 @@ export class GameEngine {
           // 触发玩家攻击动画和冲刺
           this.player.attackAnimation = 10;
           
-          // 触发sprite政击动画（新系统）
-          if (this.player.spriteAnimation) {
-            this.player.spriteAnimation.current = this.player.spriteAnimation.attack;
-            this.player.spriteAnimation.current.reset(); // 重置动画到第一帧
+          // 触发sprite攻击动画（新系统）
+          if (this.player.spriteAnimation && this.player.spriteAnimation.attack) {
+            this.player.spriteAnimation.attack.reset(); // 重置动画到第一帧
             this.player.animationState = 'attack';
           }
           
@@ -1155,6 +1162,12 @@ export class GameEngine {
     this.player.isInvincible = true;
     this.player.invincibleEndTime = now + 500; // 500ms无敌时间
     
+    // 触发受伤动画
+    if (this.player.spriteAnimation && this.player.spriteAnimation.hurt) {
+      this.player.spriteAnimation.hurt.reset();
+      this.player.animationState = 'hurt';
+    }
+    
     console.log(`Lost life! Remaining lives: ${this.lives}`);
     
     if (this.lives <= 0) {
@@ -1193,65 +1206,16 @@ export class GameEngine {
       this.ctx.drawImage(this.backgroundImage, x, y, scaledWidth, scaledHeight);
     }
     
-    // 绘制玩家 - 使用静态图片 + 程序化动画
-    if (this.player.image && this.player.image.complete) {
-      // 使用静态图片 + 程序化动画
+    // 绘制玩家 - 使用精灵动画系统
+    if (this.player.spriteAnimation) {
       this.ctx.save();
-      
-      // 待机动画：轻微上下浮动
-      const idleOffset = Math.sin(this.player.idleAnimation) * 3;
-      
-      // 攻击动画：缩放 + 旋转 + 闪光
-      let attackScale = 1.0;
-      let attackRotation = 0;
-      let attackGlow = 0;
-      let attackOffset = 0; // 攻击时的位移
-      
-      if (this.player.attackAnimation && this.player.attackAnimation > 0) {
-        const attackProgress = this.player.attackAnimation / 10; // 1.0 -> 0.0
-        
-        // 缩放效果：先放大再缩小
-        attackScale = 1.0 + Math.sin(attackProgress * Math.PI) * 0.3;
-        
-        // 旋转效果：模拟挥剑动作
-        // 从-30°快速旋转到+30°，再回到0°
-        if (attackProgress > 0.5) {
-          // 前半段：举剑 -30° -> +30°
-          attackRotation = -0.5 + (1 - attackProgress) * 2; // -0.5 -> 0.5 弧度
-        } else {
-          // 后半段：收剑 +30° -> 0°
-          attackRotation = attackProgress * 2; // 0.5 -> 0
-        }
-        
-        // 闪光效果
-        attackGlow = this.player.attackAnimation * 2;
-        
-        // 攻击时向前冲刺一小段距离
-        attackOffset = Math.sin(attackProgress * Math.PI) * 10;
-      }
       
       // 移动到玩家位置
       const flipScale = this.player.facingRight ? 1 : -1;
-      this.ctx.translate(
-        this.player.x + attackOffset * flipScale, 
-        this.player.y + idleOffset
-      );
+      this.ctx.translate(this.player.x, this.player.y);
       
-      // 应用缩放和翻转
-      this.ctx.scale(flipScale * attackScale, attackScale);
-      
-      // 应用旋转（攻击动作 + 轻微指向）
-      let totalRotation = attackRotation;
-      if (this.player.rotation !== undefined && attackRotation === 0) {
-        totalRotation = this.player.rotation * flipScale;
-      }
-      this.ctx.rotate(totalRotation);
-      
-      // 攻击时添加闪光效果
-      if (attackGlow > 0) {
-        this.ctx.shadowColor = '#ffffff';
-        this.ctx.shadowBlur = attackGlow;
-      }
+      // 应用翻转(水平翻转)
+      this.ctx.scale(flipScale, 1);
       
       // 受伤时的视觉反馈：闪烁效果
       const now = Date.now();
@@ -1277,13 +1241,24 @@ export class GameEngine {
         }
       }
       
-      this.ctx.drawImage(
-        this.player.image,
-        -this.player.width / 2,
-        -this.player.height / 2,
-        this.player.width,
-        this.player.height
-      );
+      // 根据当前动画状态渲染对应的动画
+      const currentAnim = this.player.spriteAnimation[this.player.animationState || 'idle'];
+      if (currentAnim) {
+        // 精灵图尺寸: 344x1536, 玩家尺寸: 120x180
+        // 根据高度缩放: 180 / 1536 = 0.117
+        const scale = this.player.height / 1536;
+        const scaledWidth = 344 * scale;  // 约 40
+        const scaledHeight = 1536 * scale; // = 180
+        
+        // 居中渲染
+        currentAnim.render(
+          this.ctx,
+          -scaledWidth / 2,
+          -scaledHeight / 2,
+          scale,
+          false // 不需要flipH，因为已经通过ctx.scale处理了翻转
+        );
+      }
       
       // 恢复透明度
       this.ctx.globalAlpha = 1.0;

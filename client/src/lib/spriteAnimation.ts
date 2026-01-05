@@ -8,6 +8,7 @@ export interface AnimationConfig {
   frameRate: number;       // 帧率（帧/秒）
   loop: boolean;           // 是否循环播放
   direction?: 'horizontal' | 'vertical'; // sprite sheet方向
+  columns?: number;        // 2D网格布局的列数（如果指定，则自动计算行列号）
 }
 
 export interface AnimationState {
@@ -85,7 +86,13 @@ export class SpriteAnimation {
     let sx = 0;
     let sy = 0;
     
-    if (config.direction === 'vertical') {
+    // 如果指定了columns，使用2D网格布局
+    if (config.columns !== undefined && config.columns > 0) {
+      const col = frameNumber % config.columns;  // 列号
+      const row = Math.floor(frameNumber / config.columns);  // 行号
+      sx = col * config.frameWidth;
+      sy = row * config.frameHeight;
+    } else if (config.direction === 'vertical') {
       // 纵向sprite sheet
       sx = 0;
       sy = frameNumber * config.frameHeight;

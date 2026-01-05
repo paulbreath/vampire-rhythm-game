@@ -5,7 +5,6 @@ import { MAP_NODES, isMapNodeUnlocked, getMapProgress, type MapNode } from '@/da
 import { GlassButton } from '@/components/ui/glass-button';
 import { Lock, CheckCircle, Crown, BookOpen, TreePine, Church, Clock, Skull, Beaker } from 'lucide-react';
 import { newEquipmentManager } from '@/lib/newEquipmentManager';
-import { VampireHeroSprite } from '@/components/VampireHeroSprite';
 
 export default function MapSelection() {
   const [, setLocation] = useLocation();
@@ -14,7 +13,6 @@ export default function MapSelection() {
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>('normal');
   const [bats, setBats] = useState<Array<{ id: number; x: number; y: number; speed: number; direction: number }>>([]);
-  const [heroAnimation, setHeroAnimation] = useState<'idle' | 'walk' | 'attack'>('idle');
 
   useEffect(() => {
     setProgress(progressManager.loadProgress());
@@ -83,30 +81,13 @@ export default function MapSelection() {
     const isUnlocked = isMapNodeUnlocked(node.id, completedStages);
     if (isUnlocked) {
       setSelectedNode(node);
-      setHeroAnimation('idle');
-    }
-  };
-
-  // 处理节点hover
-  const handleNodeHover = (nodeId: string | null) => {
-    setHoveredNode(nodeId);
-    if (nodeId && isMapNodeUnlocked(nodeId, completedStages)) {
-      setHeroAnimation('walk');
-    } else if (!selectedNode) {
-      setHeroAnimation('idle');
     }
   };
 
   // 开始游戏
   const handleStartGame = () => {
     if (selectedNode) {
-      // 播放攻击动画
-      setHeroAnimation('attack');
-      
-      // 等待攻击动画播放一段时间后跳转
-      setTimeout(() => {
-        setLocation(`/game?stage=${selectedNode.id}&difficulty=${selectedDifficulty}`);
-      }, 400); // 400ms后跳转，让玩家看到攻击动作
+      setLocation(`/game?stage=${selectedNode.id}&difficulty=${selectedDifficulty}`);
     }
   };
 
@@ -242,26 +223,6 @@ export default function MapSelection() {
           })}
         </svg>
 
-        {/* 主角动画 - 左下角 */}
-        <div className="absolute bottom-8 left-8 z-30">
-          <div className="relative">
-            <VampireHeroSprite
-              animation={heroAnimation}
-              width={200}
-              height={300}
-              className="drop-shadow-2xl"
-            />
-            {/* 主角名称标签 */}
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
-              <div className="px-4 py-1 bg-black/80 border-2 border-amber-500/50 rounded-lg">
-                <p className="text-amber-400 font-bold text-sm tracking-wider" style={{ fontFamily: 'monospace' }}>
-                  ALUCARD
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* 地图节点覆盖层 */}
         <div className="absolute inset-0 p-4">
           {Object.values(MAP_NODES).map((node) => {
@@ -274,8 +235,8 @@ export default function MapSelection() {
               <button
                 key={node.id}
                 onClick={() => handleNodeClick(node)}
-                onMouseEnter={() => handleNodeHover(node.id)}
-                onMouseLeave={() => handleNodeHover(null)}
+                onMouseEnter={() => setHoveredNode(node.id)}
+                onMouseLeave={() => setHoveredNode(null)}
                 className={`
                   absolute transform -translate-x-1/2 -translate-y-1/2
                   transition-all duration-300 z-20
