@@ -885,10 +885,10 @@ export class GameEngine {
       this.player.facingRight = false;
     }
 
-    // 计算攻击线起点：从主角身前中间部位发出
+    // 计算攻击线起点：从主角上方发出，让攻击从上往下挥动
     // 根据主角朝向计算偏移量
-    const attackOriginOffsetX = this.player.facingRight ? 40 : -40; // 身前40像素
-    const attackOriginOffsetY = -20; // 向上20像素（胸部/腰部位置）
+    const attackOriginOffsetX = this.player.facingRight ? 40 : -40; // 身前40像素（较小的水平偏移）
+    const attackOriginOffsetY = -80; // 主角上方80像素，让剑从上方挥下
     
     const attackOriginX = this.player.x + attackOriginOffsetX;
     const attackOriginY = this.player.y + attackOriginOffsetY;
