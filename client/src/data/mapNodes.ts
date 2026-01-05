@@ -195,15 +195,19 @@ export function isMapNodeUnlocked(nodeId: string, completedStages: string[]): bo
   const node = MAP_NODES[nodeId];
   if (!node) return false;
   
-  // 起始关卡永远解锁
-  if (node.unlockConditions.length === 0) {
-    return true;
-  }
+  // 测试模式：解锁所有地图
+  return true;
   
-  // 检查是否满足任一解锁条件
-  return node.unlockConditions.some(conditionId => 
-    completedStages.includes(conditionId)
-  );
+  // 原始解锁逻辑（已禁用）
+  // // 起始关卡永远解锁
+  // if (node.unlockConditions.length === 0) {
+  //   return true;
+  // }
+  // 
+  // // 检查是否满足任一解锁条件
+  // return node.unlockConditions.some(conditionId => 
+  //   completedStages.includes(conditionId)
+  // );
 }
 
 // 获取已解锁的地图节点
