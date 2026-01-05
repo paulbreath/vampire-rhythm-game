@@ -137,7 +137,7 @@ export default function Home() {
         <p 
           className="text-sm text-red-300/70 tracking-widest mb-2"
           style={{ 
-            fontFamily: 'serif',
+            fontFamily: 'Creepster, cursive',
             textShadow: '0 0 10px rgba(220, 20, 60, 0.5)',
           }}
         >

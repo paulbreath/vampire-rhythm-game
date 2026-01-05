@@ -118,7 +118,7 @@ export default function NewEquipment() {
           
           <h1 
             className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500"
-            style={{ fontFamily: 'serif' }}
+            style={{ fontFamily: 'Creepster, cursive' }}
           >
             ⚔️ EQUIPMENT
           </h1>
@@ -133,7 +133,7 @@ export default function NewEquipment() {
         <div className="mb-8 bg-black/60 backdrop-blur-sm border-2 border-yellow-600/50 rounded-lg p-6">
           <h2 
             className="text-2xl font-bold text-yellow-400 mb-4 text-center"
-            style={{ fontFamily: 'serif', textShadow: '0 0 10px rgba(255, 215, 0, 0.5)' }}
+            style={{ fontFamily: 'Creepster, cursive', textShadow: '0 0 10px rgba(255, 215, 0, 0.5)' }}
           >
             CURRENT LOADOUT
           </h2>

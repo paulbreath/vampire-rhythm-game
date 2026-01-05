@@ -135,7 +135,7 @@ export default function Leaderboard() {
           
           <h1 
             className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500"
-            style={{ fontFamily: 'serif' }}
+            style={{ fontFamily: 'Creepster, cursive' }}
           >
             🏆 LEADERBOARD
           </h1>

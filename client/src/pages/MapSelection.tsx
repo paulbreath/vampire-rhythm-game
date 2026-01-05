@@ -131,7 +131,7 @@ export default function MapSelection() {
           <div className="text-center">
             <h1 
               className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500 mb-1"
-              style={{ fontFamily: 'serif' }}
+              style={{ fontFamily: 'Creepster, cursive' }}
             >
               🏰 CASTLE MAP
             </h1>
@@ -250,7 +250,7 @@ export default function MapSelection() {
               <div className="md:col-span-2">
                 <h2 
                   className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500 mb-2"
-                  style={{ fontFamily: 'serif' }}
+                  style={{ fontFamily: 'Creepster, cursive' }}
                 >
                   {selectedNode.name}
                 </h2>
