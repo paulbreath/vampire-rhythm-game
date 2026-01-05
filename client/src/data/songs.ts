@@ -101,6 +101,61 @@ export const SONGS: SongMetadata[] = [
     chartPath: '/charts/eternal-bloodlust.json',
     description: '永恒的嗜血',
   },
+  {
+    id: 'blood-moon-rises',
+    title: 'Blood Moon Rises',
+    artist: 'AI Composer',
+    bpm: 130,
+    duration: 219, // 3:39
+    difficulty: 'normal',
+    audioPath: '/music/BloodMoonRises.mp3',
+    chartPath: '/charts/blood-moon-rises.json',
+    description: '血月升起 - 地下墓穴的恐怖',
+  },
+  {
+    id: 'blood-moon-rises-2',
+    title: 'Blood Moon Rises II',
+    artist: 'AI Composer',
+    bpm: 135,
+    duration: 289, // 4:49
+    difficulty: 'normal',
+    audioPath: '/music/BloodMoonRises2.mp3',
+    chartPath: '/charts/blood-moon-rises-2.json',
+    description: '血月升起 第二章 - 古老陵墓的诗篇',
+  },
+  {
+    id: 'battle-of-the-highlands',
+    title: 'Battle of the Highlands',
+    artist: 'AI Composer',
+    bpm: 145,
+    duration: 350, // 5:49
+    difficulty: 'hard',
+    audioPath: '/music/BattleoftheHighlands.mp3',
+    chartPath: '/charts/battle-of-the-highlands.json',
+    description: '高地之战 - 王座厅的史诗决战',
+  },
+  {
+    id: 'highlands-breath',
+    title: "Highland's Breath",
+    artist: 'AI Composer',
+    bpm: 120,
+    duration: 223, // 3:43
+    difficulty: 'normal',
+    audioPath: '/music/HighlandsBreath.mp3',
+    chartPath: '/charts/highlands-breath.json',
+    description: '高地之息 - 诅咒森林的呼唤',
+  },
+  {
+    id: 'electric-shadows-whispering-doom-2',
+    title: 'Electric Shadows Whispering Doom II',
+    artist: 'AI Composer',
+    bpm: 128,
+    duration: 215, // 3:34
+    difficulty: 'normal',
+    audioPath: '/music/ElectricShadowsWhisperingDoom2.mp3',
+    chartPath: '/charts/electric-shadows-whispering-doom-2.json',
+    description: '电子阴影 第二章 - 禁忌图书馆的秘密',
+  },
 ];
 
 // 根据ID获取歌曲

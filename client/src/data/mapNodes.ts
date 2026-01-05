@@ -49,7 +49,7 @@ export const MAP_NODES: Record<string, MapNode> = {
     nameEn: 'Catacombs',
     chapter: 1,
     theme: '阴暗的地下墓室，骷髅和棺材',
-    music: 'nocturnal-hunger', // 暂时复用，后续替换
+    music: 'blood-moon-rises',
     position: { x: 15, y: 75 },
     connections: ['abandoned-church', 'ancient-tomb'],
     unlockConditions: ['abandoned-church'],
@@ -78,7 +78,7 @@ export const MAP_NODES: Record<string, MapNode> = {
     nameEn: 'Ancient Tomb',
     chapter: 2,
     theme: '古代贵族的陵墓，华丽而诡异',
-    music: 'electric-shadows-whispering-doom', // 暂时复用，后续替换
+    music: 'blood-moon-rises-2',
     position: { x: 65, y: 75 },
     connections: ['catacombs', 'misty-graveyard', 'cursed-forest', 'castle-hall'],
     unlockConditions: ['catacombs', 'misty-graveyard'], // 二选一
@@ -92,7 +92,7 @@ export const MAP_NODES: Record<string, MapNode> = {
     nameEn: 'Cursed Forest',
     chapter: 2,
     theme: '被黑暗笼罩的森林，扭曲的树木',
-    music: 'electric-shadows-whispering-doom', // 暂时复用，后续替换
+    music: 'highlands-breath',
     position: { x: 85, y: 55 },
     connections: ['ancient-tomb', 'library'],
     unlockConditions: ['ancient-tomb'],
@@ -121,7 +121,7 @@ export const MAP_NODES: Record<string, MapNode> = {
     nameEn: 'Forbidden Library',
     chapter: 3,
     theme: '古老的图书馆，飞舞的书页',
-    music: 'eternal-bloodlust', // 暂时复用，后续替换
+    music: 'electric-shadows-whispering-doom-2',
     position: { x: 75, y: 20 },
     connections: ['cursed-forest', 'castle-hall', 'throne-room'],
     unlockConditions: ['cursed-forest', 'castle-hall'], // 二选一
@@ -149,7 +149,7 @@ export const MAP_NODES: Record<string, MapNode> = {
     nameEn: 'Throne Room',
     chapter: 3,
     theme: '吸血鬼王的王座，最终决战',
-    music: 'eternal-bloodlust', // 暂时复用，后续替换
+    music: 'battle-of-the-highlands',
     position: { x: 65, y: 10 },
     connections: ['castle-hall', 'library', 'alchemy-lab'],
     unlockConditions: ['library', 'alchemy-lab'], // 需要至少通关其中一个
