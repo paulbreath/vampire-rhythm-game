@@ -156,6 +156,50 @@ export const SONGS: SongMetadata[] = [
     chartPath: '/charts/electric-shadows-whispering-doom-2.json',
     description: '电子阴影 第二章 - 禁忌图书馆的秘密',
   },
+  {
+    id: 'witches-parade-assassin',
+    title: 'Witches Parade Assassin',
+    artist: 'AI Composer',
+    bpm: 135,
+    duration: 140, // 2:20
+    difficulty: 'normal',
+    audioPath: '/music/WitchesParadeAssassin.mp3',
+    chartPath: '/charts/witches-parade-assassin.json',
+    description: '女巫游行刺客 - 神秘的钟楼',
+  },
+  {
+    id: 'cathedral-of-hollow-echoes',
+    title: 'Cathedral of Hollow Echoes',
+    artist: 'AI Composer',
+    bpm: 120,
+    duration: 190, // 3:10
+    difficulty: 'normal',
+    audioPath: '/music/CathedralofHollowEchoes.mp3',
+    chartPath: '/charts/cathedral-of-hollow-echoes.json',
+    description: '空洞回声的教堂 - 地下墓穴的回音',
+  },
+  {
+    id: 'cathedral-of-blood-and-bone',
+    title: 'Cathedral of Blood and Bone',
+    artist: 'AI Composer',
+    bpm: 130,
+    duration: 197, // 3:17
+    difficulty: 'normal',
+    audioPath: '/music/CathedralofBloodandBone.mp3',
+    chartPath: '/charts/cathedral-of-blood-and-bone.json',
+    description: '鲜血与白骨的教堂 - 炼金实验室的恐怖',
+  },
+  {
+    id: 'crimson-moon-siege',
+    title: 'Crimson Moon Siege',
+    artist: 'AI Composer',
+    bpm: 140,
+    duration: 212, // 3:32
+    difficulty: 'hard',
+    audioPath: '/music/CrimsonMoonSiege.mp3',
+    chartPath: '/charts/crimson-moon-siege.json',
+    description: '猩红月亮围城 - 迷雾墓地的最终战',
+  },
 ];
 
 // 根据ID获取歌曲

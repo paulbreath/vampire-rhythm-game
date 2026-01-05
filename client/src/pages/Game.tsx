@@ -8,8 +8,9 @@ import { toast } from "sonner";
 import { getSongById, SONGS } from "@/data/songs";
 import { SoundEffectsManager } from "@/lib/soundEffects";
 import { progressManager, STAGES, DIFFICULTY_CONFIGS, type DifficultyLevel } from "@/lib/progressManager";
-import { mapNodeIdToStageId } from "@/data/mapToStageMapping";
+import { mapNodeIdToStageId, getMapNodeBackground } from "@/data/mapToStageMapping";
 import { MAP_NODES } from "@/data/mapNodes";
+import { experienceManager, type PlayerStats } from "@/lib/experienceManager";
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,6 +25,7 @@ export default function Game() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [playerStats, setPlayerStats] = useState<PlayerStats>(experienceManager.loadStats());
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -38,19 +40,22 @@ export default function Game() {
     let currentStage;
     let songId;
     let stageId; // 用于保存进度的stage ID
+    let backgroundImage; // 背景图路径
     
     if (mapNode) {
-      // 新的地图系统：使用地图节点的音乐配置
+      // 新的地图系统：使用地图节点的音乐和背景配置
       const mappedStageId = mapNodeIdToStageId(stageParam);
       currentStage = STAGES.find(s => s.id === mappedStageId) || STAGES[0];
       stageId = currentStage.id;
       songId = mapNode.music; // 使用地图节点指定的音乐
-      console.log('Loading map node:', mapNode.name, 'mapped to stage:', currentStage.name);
+      backgroundImage = getMapNodeBackground(stageParam); // 使用地图节点的背景图
+      console.log('Loading map node:', mapNode.name, 'mapped to stage:', currentStage.name, 'background:', backgroundImage);
     } else {
       // 旧的stage系统：向后兼容
       currentStage = STAGES.find(s => s.id === stageParam) || STAGES[0];
       stageId = currentStage.id;
       songId = urlParams.get('song') || currentStage.music;
+      backgroundImage = currentStage.backgroundImage; // 使用stage的背景图
       console.log('Loading stage (legacy):', currentStage.name);
     }
     
@@ -76,6 +81,20 @@ export default function Game() {
       onScoreChange: setScore,
       onComboChange: setCombo,
       onLivesChange: setHealth,
+      onExpChange: (stats) => {
+        setPlayerStats(stats);
+      },
+      onLevelUp: (level, message) => {
+        toast.success(`🎉 Level Up! Lv.${level} - ${message}`, {
+          duration: 3000,
+          style: {
+            background: '#10B981',
+            color: 'white',
+            fontSize: '18px',
+            fontWeight: 'bold'
+          }
+        });
+      },
       onGameOver: () => {
         soundEffects.playGameOver();
         setIsGameOver(true);
@@ -154,7 +173,7 @@ export default function Game() {
         
         // Set background, audio and chart to game engine
         if (gameEngineRef.current) {
-          gameEngineRef.current.setBackgroundImage(currentStage.backgroundImage);
+          gameEngineRef.current.setBackgroundImage(backgroundImage);
           gameEngineRef.current.setAudioManager(audioManager);
           gameEngineRef.current.setChartData(chartData);
         }
@@ -248,7 +267,22 @@ export default function Game() {
           BACK
         </Button>
 
-        <div className="flex gap-8 items-center text-sm">
+        <div className="flex gap-6 items-center text-sm">
+          {/* Level & EXP */}
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground">LEVEL</div>
+            <div className="text-xl glow-green font-bold">Lv.{playerStats.level}</div>
+            <div className="w-24 h-1.5 bg-muted rounded-full mt-1 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-300"
+                style={{ width: `${(playerStats.exp / playerStats.expToNextLevel) * 100}%` }}
+              />
+            </div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">
+              {playerStats.exp}/{playerStats.expToNextLevel} EXP
+            </div>
+          </div>
+
           {/* Score */}
           <div className="text-center">
             <div className="text-xs text-muted-foreground">SCORE</div>
@@ -269,7 +303,7 @@ export default function Game() {
                 <span key={i}>❤️</span>
               ))}
               {[...Array(Math.max(0, 3 - Math.max(0, health)))].map((_, i) => (
-                <span key={i} className="opacity-30">🖤</span>
+                <span key={i} className="opacity-30">💔</span>
               ))}
             </div>
           </div>

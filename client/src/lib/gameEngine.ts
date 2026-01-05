@@ -1,6 +1,7 @@
 import { AudioManager } from './audioManager';
 import { ChartData } from './chartLoader';
 import { SpriteAnimation, AnimationState, createPlayerAnimations } from './spriteAnimation';
+import { experienceManager, type PlayerStats } from './experienceManager';
 
 export interface Enemy {
   id: number;
@@ -124,6 +125,9 @@ export class GameEngine {
   private onComboChange?: (combo: number) => void;
   private onLivesChange?: (lives: number) => void;
   private onGameOver?: () => void;
+  private onExpChange?: (stats: PlayerStats) => void;
+  private onLevelUp?: (level: number, message: string) => void;
+  private playerStats: PlayerStats;
   
   private isGameStarted = false;  // 标记游戏是否已开始
   
@@ -140,6 +144,10 @@ export class GameEngine {
       throw new Error('Failed to get 2D context');
     }
     this.ctx = context;
+    
+    // 加载玩家经验数据
+    this.playerStats = experienceManager.loadStats();
+    console.log('Player stats loaded:', this.playerStats);
     
     // 初始化玩家位置（只支持横屏）
     this.player = this.initializePlayer();
@@ -296,11 +304,15 @@ export class GameEngine {
     onComboChange?: (combo: number) => void;
     onLivesChange?: (lives: number) => void;
     onGameOver?: () => void;
+    onExpChange?: (stats: PlayerStats) => void;
+    onLevelUp?: (level: number, message: string) => void;
   }): void {
     this.onScoreChange = callbacks.onScoreChange;
     this.onComboChange = callbacks.onComboChange;
     this.onLivesChange = callbacks.onLivesChange;
     this.onGameOver = callbacks.onGameOver;
+    this.onExpChange = callbacks.onExpChange;
+    this.onLevelUp = callbacks.onLevelUp;
   }
   
   public setSoundEffects(soundEffects: any): void {
@@ -934,6 +946,28 @@ export class GameEngine {
     this.combo++;
     const actualPoints = Math.floor(points * (1 + this.combo * 0.1));
     this.score += actualPoints;
+    
+    // 添加经验值
+    const expGained = experienceManager.calculateKillExp(enemyType, this.combo);
+    const result = experienceManager.addExp(this.playerStats, expGained);
+    this.playerStats = result.newStats;
+    
+    // 通知UI更新
+    this.onExpChange?.(this.playerStats);
+    
+    // 如果升级，显示升级消息
+    if (result.leveledUp && result.newLevel && result.rewards) {
+      for (const reward of result.rewards) {
+        this.onLevelUp?.(reward.level, reward.unlockMessage);
+        if (x !== undefined && y !== undefined) {
+          this.createFloatingText(`LEVEL UP! Lv.${reward.level}`, x, y - 60, '#00FF00', 36, true);
+        }
+      }
+    }
+    
+    // 更新击杀数和最大连击
+    this.playerStats = experienceManager.addKill(this.playerStats);
+    this.playerStats = experienceManager.updateMaxCombo(this.playerStats, this.combo);
     
     // 创建浮动文字
     if (x !== undefined && y !== undefined) {

@@ -206,4 +206,8 @@
   .glow-gold {
     text-shadow: 0 0 10px oklch(0.60 0.15 60), 0 0 20px oklch(0.60 0.15 60);
   }
+  
+  .glow-green {
+    text-shadow: 0 0 10px oklch(0.60 0.20 150), 0 0 20px oklch(0.60 0.20 150);
+  }
 }
