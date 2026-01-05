@@ -5,7 +5,7 @@ import { experienceManager, type PlayerStats } from './experienceManager';
 
 export interface Enemy {
   id: number;
-  type: 'bat_blue' | 'bat_purple' | 'bat_red' | 'bat_yellow' | 'vampire' | 'bomb';
+  type: 'bat_blue' | 'bat_purple' | 'bat_red' | 'bat_yellow' | 'vampire' | 'bomb' | 'skeleton' | 'ghost' | 'werewolf' | 'medusa_head' | 'crow';
   x: number;
   y: number;
   speed: number;
@@ -22,6 +22,10 @@ export interface Enemy {
   guardBossId?: number; // 护卫的BOSS ID
   guardAngle?: number; // 护卫环绕角度（弧度）
   guardRadius?: number; // 护卫环绕半径
+  movementPattern?: 'linear' | 'wave' | 'sine' | 'dash' | 'dive'; // 移动模式
+  initialY?: number; // 初始Y坐标，用于波浪移动
+  dashCooldown?: number; // 冲刺冷却时间
+  isDashing?: boolean; // 是否正在冲刺
 }
 
 export interface Player {
@@ -219,7 +223,7 @@ export class GameEngine {
     playerImg.src = '/images/characters/castlevania-hero-side.png';
     
     // 加载敌人精灵
-    const enemyTypes: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb'];
+    const enemyTypes: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb', 'skeleton', 'ghost', 'werewolf', 'medusa_head', 'crow'];
     const enemyImagePaths: Record<Enemy['type'], string> = {
       bat_blue: '/images/enemies/bat-blue-side.png',
       bat_purple: '/images/enemies/bat-purple-side.png',
@@ -227,6 +231,11 @@ export class GameEngine {
       bat_yellow: '/images/enemies/bat-yellow-side.png',
       vampire: '/images/enemies/vampire-boss-side.png',
       bomb: '/images/enemies/bomb-bat-side.png',
+      skeleton: '/images/enemy-skeleton.png',
+      ghost: '/images/enemy-ghost.png',
+      werewolf: '/images/enemy-werewolf.png',
+      medusa_head: '/images/enemy-medusa-head.png',
+      crow: '/images/enemy-crow.png',
     };
     
     for (const type of enemyTypes) {
@@ -469,8 +478,61 @@ export class GameEngine {
           enemy.x -= enemy.speed;
         }
       } else {
-        // 横屏：敌人从右往左移动
-        enemy.x -= enemy.speed;
+        // 横屏：根据移动模式移动敌人
+        const pattern = enemy.movementPattern || 'linear';
+        
+        switch (pattern) {
+          case 'linear':
+            // 直线移动（默认）
+            enemy.x -= enemy.speed;
+            break;
+            
+          case 'wave':
+            // 波浪移动（鬼魂）
+            enemy.x -= enemy.speed;
+            if (enemy.initialY === undefined) enemy.initialY = enemy.y;
+            enemy.y = enemy.initialY + Math.sin(enemy.animationOffset) * 30;
+            break;
+            
+          case 'sine':
+            // 正弦波移动（美杜莎头）
+            enemy.x -= enemy.speed;
+            if (enemy.initialY === undefined) enemy.initialY = enemy.y;
+            enemy.y = enemy.initialY + Math.sin(enemy.animationOffset * 2) * 50;
+            break;
+            
+          case 'dash':
+            // 冲刺移动（狼人）
+            if (enemy.isDashing) {
+              enemy.x -= enemy.speed * 3; // 冲刺时3倍速度
+              enemy.dashCooldown = (enemy.dashCooldown || 0) - 1;
+              if (enemy.dashCooldown <= 0) {
+                enemy.isDashing = false;
+                enemy.dashCooldown = 60; // 60帧冷却
+              }
+            } else {
+              enemy.x -= enemy.speed * 0.5; // 正常速度的一半
+              enemy.dashCooldown = (enemy.dashCooldown || 60) - 1;
+              if (enemy.dashCooldown <= 0) {
+                enemy.isDashing = true;
+                enemy.dashCooldown = 20; // 冲刺20帧
+              }
+            }
+            break;
+            
+          case 'dive':
+            // 俯冲移动（乌鸦）
+            enemy.x -= enemy.speed;
+            if (enemy.initialY === undefined) enemy.initialY = enemy.y;
+            // 先上升再下降
+            const progress = (this.canvas.width - enemy.x) / this.canvas.width;
+            if (progress < 0.3) {
+              enemy.y = enemy.initialY - progress * 200; // 上升
+            } else {
+              enemy.y = enemy.initialY + (progress - 0.3) * 300; // 俯冲
+            }
+            break;
+        }
       }
       
       // 更新飞行动画
@@ -626,7 +688,7 @@ export class GameEngine {
     switch (enemyType) {
       case 'bat_blue':
         size = 40;
-        speed = 3.0;  // 增加速度，让敌人更快离开屏幕
+        speed = 3.0;
         color = '#00ffff';
         break;
       case 'bat_purple':
@@ -646,7 +708,7 @@ export class GameEngine {
         break;
       case 'vampire':
         size = 80; // BOSS更大
-        speed = 1.5;  // BOSS速度较慢
+        speed = 1.5;
         color = '#ffd700';
         break;
       case 'bomb':
@@ -654,11 +716,56 @@ export class GameEngine {
         speed = 3.0;
         color = '#ff0000';
         break;
+      case 'skeleton':
+        size = 50;
+        speed = 2.0; // 慢速
+        color = '#ffffff';
+        break;
+      case 'ghost':
+        size = 45;
+        speed = 2.5; // 中速
+        color = '#aaddff';
+        break;
+      case 'werewolf':
+        size = 55;
+        speed = 4.0; // 快速
+        color = '#666666';
+        break;
+      case 'medusa_head':
+        size = 48;
+        speed = 2.8; // 中速
+        color = '#88ff88';
+        break;
+      case 'crow':
+        size = 42;
+        speed = 3.8; // 快速
+        color = '#333333';
+        break;
     }
     
     // 只支持横屏：从右侧随机位置生成
     const x = this.canvas.width + size;
     const y = Math.random() * (this.canvas.height - size * 2) + size;
+    
+    // 根据敌人类型分配移动模式
+    let movementPattern: Enemy['movementPattern'] = 'linear';
+    switch (enemyType) {
+      case 'skeleton':
+        movementPattern = 'linear'; // 直线移动
+        break;
+      case 'ghost':
+        movementPattern = 'wave'; // 波浪移动
+        break;
+      case 'werewolf':
+        movementPattern = 'dash'; // 冲刺移动
+        break;
+      case 'medusa_head':
+        movementPattern = 'sine'; // 正弦波移动
+        break;
+      case 'crow':
+        movementPattern = 'dive'; // 俯冲移动
+        break;
+    }
     
     const enemy: Enemy = {
       id: this.nextEnemyId++,
@@ -670,6 +777,10 @@ export class GameEngine {
       color,
       image: this.enemyImages.get(enemyType),
       animationOffset: Math.random() * Math.PI * 2, // 随机初始动画偏移，让敌人动画不同步
+      movementPattern,
+      initialY: y,
+      dashCooldown: enemyType === 'werewolf' ? 60 : undefined,
+      isDashing: false,
     };
     
     // 如果是BOSS，添加血量和护卫炸弹

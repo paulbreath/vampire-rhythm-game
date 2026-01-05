@@ -5,7 +5,7 @@
 
 export interface ChartNote {
   time: number; // 音符出现时间（秒）
-  type: 'bat_blue' | 'bat_purple' | 'bat_red' | 'bat_yellow' | 'vampire' | 'bomb';
+  type: 'bat_blue' | 'bat_purple' | 'bat_red' | 'bat_yellow' | 'vampire' | 'bomb' | 'skeleton' | 'ghost' | 'werewolf' | 'medusa_head' | 'crow';
   x?: number; // X坐标（可选，如果没有则随机生成）
   y?: number; // Y坐标（可选）
   intensity?: number; // 音符强度（0-1）
@@ -154,8 +154,8 @@ export class ChartLoader {
    * 获取随机音符类型
    */
   private static getRandomNoteType(): ChartNote['type'] {
-    const types: ChartNote['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire'];
-    const weights = [25, 20, 15, 15, 25]; // 概率权重
+    const types: ChartNote['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'skeleton', 'ghost', 'werewolf', 'medusa_head', 'crow'];
+    const weights = [15, 15, 10, 10, 15, 10, 10, 5, 5, 5]; // 概率权重
     
     const totalWeight = weights.reduce((a, b) => a + b, 0);
     let random = Math.random() * totalWeight;
