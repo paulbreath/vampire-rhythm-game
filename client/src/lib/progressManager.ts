@@ -67,14 +67,14 @@ export const STAGES: Omit<Stage, 'progress'>[] = [
     name: 'Graveyard',
     scene: 'graveyard',
     backgroundImage: '/images/backgrounds/graveyard.png',
-    music: 'nocturnal-hunger', // TODO: 替换为墓地音乐
+    music: 'electric-shadows-whispering-doom',
   },
   {
     id: 'castle',
     name: 'Castle',
     scene: 'castle',
     backgroundImage: '/images/backgrounds/castle.png',
-    music: 'nocturnal-hunger', // TODO: 替换为城堡音乐
+    music: 'eternal-bloodlust',
   },
 ];
 

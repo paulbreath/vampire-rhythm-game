@@ -35,9 +35,11 @@ export default function Game() {
     const currentStage = STAGES.find(s => s.id === stageId) || STAGES[0];
     const difficultyConfig = DIFFICULTY_CONFIGS[difficulty];
     
-    // 兼容旧的song参数（如果有）
-    const songId = urlParams.get('song');
-    const currentSong = songId ? (getSongById(songId) || SONGS[0]) : SONGS[0];
+    // 根据stage.music获取歌曲，兼容旧的song参数
+    const songId = urlParams.get('song') || currentStage.music;
+    const currentSong = getSongById(songId) || SONGS[0];
+    
+    console.log('Loading stage:', currentStage.name, 'with music:', currentSong.title);
 
     // Initialize sound effects
     const soundEffects = new SoundEffectsManager();

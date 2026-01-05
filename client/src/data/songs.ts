@@ -79,6 +79,28 @@ export const SONGS: SongMetadata[] = [
     chartPath: '/charts/NocturnalHunger5.json',
     description: '吸血鬼之夜 第五章',
   },
+  {
+    id: 'electric-shadows-whispering-doom',
+    title: 'Electric Shadows Whispering Doom',
+    artist: 'AI Composer',
+    bpm: 125,
+    duration: 240, // 4:00
+    difficulty: 'normal',
+    audioPath: '/music/ElectricShadowsWhisperingDoom.mp3',
+    chartPath: '/charts/electric-shadows-whispering-doom.json',
+    description: '墓地的电子阴影',
+  },
+  {
+    id: 'eternal-bloodlust',
+    title: 'Eternal Bloodlust',
+    artist: 'AI Composer',
+    bpm: 140,
+    duration: 267, // 4:27
+    difficulty: 'hard',
+    audioPath: '/music/EternalBloodlust.mp3',
+    chartPath: '/charts/eternal-bloodlust.json',
+    description: '永恒的嗜血',
+  },
 ];
 
 // 根据ID获取歌曲
