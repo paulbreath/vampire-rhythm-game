@@ -10,7 +10,8 @@ import { SoundEffectsManager } from "@/lib/soundEffects";
 import { progressManager, STAGES, DIFFICULTY_CONFIGS, type DifficultyLevel } from "@/lib/progressManager";
 import { mapNodeIdToStageId, getMapNodeBackground } from "@/data/mapToStageMapping";
 import { MAP_NODES } from "@/data/mapNodes";
-import { experienceManager, type PlayerStats } from "@/lib/experienceManager";
+import { experienceManager, type PlayerStats } from '@/lib/experienceManager';
+import { equipmentManager } from '@/lib/equipmentManager';
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -26,6 +27,7 @@ export default function Game() {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [playerStats, setPlayerStats] = useState<PlayerStats>(experienceManager.loadStats());
+  const [equipmentStats, setEquipmentStats] = useState(equipmentManager.calculateStats());
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -294,6 +296,17 @@ export default function Game() {
             <div className="text-xs text-muted-foreground">COMBO</div>
             <div className="text-xl glow-purple font-bold">{combo}x</div>
           </div>
+
+          {/* Equipment Stats */}
+          {(equipmentStats.totalAttack > 0 || equipmentStats.totalHP > 0) && (
+            <div className="text-center">
+              <div className="text-xs text-muted-foreground">EQUIPMENT</div>
+              <div className="text-xs">
+                {equipmentStats.totalAttack > 0 && <span className="text-red-400">⚔️+{equipmentStats.totalAttack} </span>}
+                {equipmentStats.totalHP > 0 && <span className="text-green-400">❤️+{equipmentStats.totalHP}</span>}
+              </div>
+            </div>
+          )}
 
           {/* Health */}
           <div className="text-center">
