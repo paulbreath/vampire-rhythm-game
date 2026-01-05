@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { progressManager, DIFFICULTY_CONFIGS, type DifficultyLevel } from '@/lib/progressManager';
 import { MAP_NODES, isMapNodeUnlocked, getMapProgress, type MapNode } from '@/data/mapNodes';
 import { GlassButton } from '@/components/ui/glass-button';
 import { Lock, CheckCircle, Crown, BookOpen, TreePine, Church, Clock, Skull, Beaker } from 'lucide-react';
+import { newEquipmentManager } from '@/lib/newEquipmentManager';
 
 export default function MapSelection() {
   const [, setLocation] = useLocation();
@@ -94,9 +95,15 @@ export default function MapSelection() {
   const handleBack = () => {
     setLocation('/');
   };
+  
+  // 解锁所有装备（测试功能）
+  const handleUnlockAll = () => {
+    newEquipmentManager.unlockAllEquipment();
+    alert('All equipment unlocked!');
+  };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-black">
+    <div className="min-h-screen relative overflow-hidden bg-black flex flex-col">
       {/* 暗色背景 */}
       <div className="absolute inset-0 bg-gradient-to-b from-purple-950/50 via-black to-black" />
 
@@ -116,8 +123,8 @@ export default function MapSelection() {
         </div>
       ))}
 
-      {/* 顶部信息栏 */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b-2 border-yellow-600/30 p-4">
+      {/* 顶部信息栏 - 缩小高度 */}
+      <div className="relative z-50 bg-black/80 backdrop-blur-sm border-b-2 border-yellow-600/30 py-2 px-4">
         <div className="container flex items-center justify-between">
           <GlassButton
             onClick={handleBack}
@@ -130,23 +137,31 @@ export default function MapSelection() {
           
           <div className="text-center">
             <h1 
-              className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500 mb-1"
+              className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500"
               style={{ fontFamily: '"Press Start 2P", cursive' }}
             >
               🏰 CASTLE MAP
             </h1>
-            <p className="text-sm text-yellow-300/80">
+            <p className="text-xs text-yellow-300/80">
               Progress: {mapProgress.completed}/{mapProgress.total} ({mapProgress.percentage}%)
             </p>
           </div>
           
-          <div className="w-24" /> {/* 占位，保持居中 */}
+          {/* 解锁按钮 - 缩小尺寸 */}
+          <button
+            onClick={handleUnlockAll}
+            className="px-3 py-1 text-xs bg-gray-700/80 hover:bg-gray-600/80 text-gray-300 border border-gray-500 rounded transition-all"
+            style={{ fontFamily: '"Press Start 2P", cursive' }}
+          >
+            🔓 TEST
+          </button>
         </div>
       </div>
 
-      {/* 地图背景 */}
-      <div className="relative w-full h-screen pt-20">
-        <div className="absolute inset-0 flex items-center justify-center">
+      {/* 地图区域 - 占据剩余空间 */}
+      <div className="relative flex-1 flex items-center justify-center">
+        {/* 地图背景 */}
+        <div className="absolute inset-0 flex items-center justify-center p-4">
           <img
             src="/images/map-system-background.png"
             alt="Castle Map"
@@ -155,7 +170,7 @@ export default function MapSelection() {
         </div>
 
         {/* 地图节点覆盖层 */}
-        <div className="absolute inset-0 pt-20">
+        <div className="absolute inset-0 p-4">
           {Object.values(MAP_NODES).map((node) => {
             const isUnlocked = isMapNodeUnlocked(node.id, completedStages);
             const isCompleted = completedStages.includes(node.id);
@@ -241,23 +256,23 @@ export default function MapSelection() {
         </div>
       </div>
 
-      {/* 底部详情面板 */}
+      {/* 底部详情面板 - 只在选中节点时显示 */}
       {selectedNode && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-md border-t-4 border-yellow-600/50 p-6">
+        <div className="relative z-50 bg-black/95 backdrop-blur-md border-t-4 border-yellow-600/50 p-4">
           <div className="container">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* 左侧：关卡信息 */}
               <div className="md:col-span-2">
                 <h2 
-                  className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500 mb-2"
+                  className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500 mb-2"
                   style={{ fontFamily: '"Press Start 2P", cursive' }}
                 >
                   {selectedNode.name}
                 </h2>
-                <p className="text-yellow-400/80 text-sm mb-1 italic">{selectedNode.nameEn}</p>
-                <p className="text-gray-300 mb-4">{selectedNode.description}</p>
+                <p className="text-yellow-400/80 text-xs mb-1 italic">{selectedNode.nameEn}</p>
+                <p className="text-gray-300 text-sm mb-3">{selectedNode.description}</p>
                 
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
                     <span className="text-yellow-500">Chapter:</span>{' '}
                     <span className="text-white font-bold">#{selectedNode.chapter}</span>
@@ -280,10 +295,10 @@ export default function MapSelection() {
               </div>
 
               {/* 右侧：难度选择和操作按钮 */}
-              <div className="flex flex-col gap-3 justify-center">
+              <div className="flex flex-col gap-2 justify-center">
                 {/* 难度选择器 */}
-                <div className="mb-2">
-                  <p className="text-yellow-400 text-sm mb-2 text-center font-bold">SELECT DIFFICULTY:</p>
+                <div className="mb-1">
+                  <p className="text-yellow-400 text-xs mb-2 text-center font-bold">SELECT DIFFICULTY:</p>
                   <div className="flex gap-2">
                     {(['normal', 'hard', 'insane'] as DifficultyLevel[]).map((difficulty) => {
                       const config = DIFFICULTY_CONFIGS[difficulty];
@@ -296,34 +311,29 @@ export default function MapSelection() {
                           onClick={() => isUnlocked && setSelectedDifficulty(difficulty)}
                           disabled={!isUnlocked}
                           className={`
-                            flex-1 px-3 py-2 text-xs rounded-lg border-3 transition-all font-bold
+                            flex-1 px-2 py-1 text-xs rounded border-2 transition-all font-bold
                             ${isSelected 
-                              ? 'bg-red-800/90 border-yellow-500 text-white scale-105 shadow-lg' 
+                              ? 'bg-yellow-600 border-yellow-400 text-white' 
                               : isUnlocked
-                                ? 'bg-red-900/50 border-yellow-600/50 text-yellow-300 hover:border-yellow-500 hover:scale-105'
-                                : 'bg-gray-800/50 border-gray-600 text-gray-500 cursor-not-allowed opacity-50'
+                                ? 'bg-red-900/50 border-red-600 text-yellow-300 hover:bg-red-800/70'
+                                : 'bg-gray-800/50 border-gray-600 text-gray-500 cursor-not-allowed'
                             }
                           `}
-                          style={{
-                            boxShadow: isSelected ? '0 0 20px rgba(255, 215, 0, 0.5)' : 'none',
-                          }}
                         >
-                          <div className="flex flex-col items-center gap-0.5">
-                            <span>{config.name.toUpperCase()}</span>
-                            {!isUnlocked && <span>🔒</span>}
-                          </div>
+                          {config.label}
                         </button>
                       );
                     })}
                   </div>
                 </div>
-                
+
+                {/* 开始游戏按钮 */}
                 <GlassButton
                   onClick={handleStartGame}
-                  size="lg"
-                  icon="⚔️"
+                  size="sm"
+                  icon="▶"
                 >
-                  START BATTLE
+                  START
                 </GlassButton>
               </div>
             </div>
