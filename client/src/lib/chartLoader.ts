@@ -17,7 +17,7 @@ export interface ChartData {
     artist?: string;
     bpm: number;
     duration: number;
-    difficulty: 'easy' | 'normal' | 'hard';
+    difficulty: 'normal' | 'hard' | 'insane';
   };
   notes: ChartNote[];
 }

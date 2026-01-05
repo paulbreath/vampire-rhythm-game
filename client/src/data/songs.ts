@@ -5,7 +5,7 @@ export interface SongMetadata {
   artist: string;
   bpm: number;
   duration: number; // 秒
-  difficulty: 'easy' | 'normal' | 'hard';
+  difficulty: 'normal' | 'hard' | 'insane';
   audioPath: string;
   chartPath: string;
   coverImage?: string;
@@ -96,7 +96,7 @@ export const SONGS: SongMetadata[] = [
     artist: 'AI Composer',
     bpm: 140,
     duration: 267, // 4:27
-    difficulty: 'hard',
+    difficulty: 'insane',
     audioPath: '/music/EternalBloodlust.mp3',
     chartPath: '/charts/eternal-bloodlust.json',
     description: '永恒的嗜血',
@@ -129,7 +129,7 @@ export const SONGS: SongMetadata[] = [
     artist: 'AI Composer',
     bpm: 145,
     duration: 350, // 5:49
-    difficulty: 'hard',
+    difficulty: 'insane',
     audioPath: '/music/BattleoftheHighlands.mp3',
     chartPath: '/charts/battle-of-the-highlands.json',
     description: '高地之战 - 王座厅的史诗决战',
@@ -195,7 +195,7 @@ export const SONGS: SongMetadata[] = [
     artist: 'AI Composer',
     bpm: 140,
     duration: 212, // 3:32
-    difficulty: 'hard',
+    difficulty: 'insane',
     audioPath: '/music/CrimsonMoonSiege.mp3',
     chartPath: '/charts/crimson-moon-siege.json',
     description: '猩红月亮围城 - 迷雾墓地的最终战',
@@ -208,6 +208,6 @@ export function getSongById(id: string): SongMetadata | undefined {
 }
 
 // 根据难度筛选歌曲
-export function getSongsByDifficulty(difficulty: 'easy' | 'normal' | 'hard'): SongMetadata[] {
+export function getSongsByDifficulty(difficulty: 'normal' | 'hard' | 'insane'): SongMetadata[] {
   return SONGS.filter((song) => song.difficulty === difficulty);
 }

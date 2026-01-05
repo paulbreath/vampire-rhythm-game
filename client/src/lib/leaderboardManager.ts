@@ -125,7 +125,7 @@ class LeaderboardManager {
       { id: 'ancient-tomb', name: '古老陵墓' }
     ];
     
-    const difficulties = ['easy', 'normal', 'hard'];
+    const difficulties = ['normal', 'hard', 'insane'];
     
     // 生成50条测试数据
     for (let i = 0; i < 50; i++) {

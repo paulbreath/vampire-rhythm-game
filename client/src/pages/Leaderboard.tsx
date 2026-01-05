@@ -6,7 +6,7 @@ import { leaderboardManager, type LeaderboardEntry } from "@/lib/leaderboardMana
 export default function Leaderboard() {
   const [, setLocation] = useLocation();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [filter, setFilter] = useState<'all' | 'easy' | 'normal' | 'hard'>('all');
+  const [filter, setFilter] = useState<'all' | 'normal' | 'hard' | 'insane'>('all');
   const [bats, setBats] = useState<Array<{ id: number; x: number; y: number; speed: number; direction: number }>>([]);
 
   useEffect(() => {
@@ -156,13 +156,6 @@ export default function Leaderboard() {
             ALL
           </GlassButton>
           <GlassButton
-            onClick={() => setFilter('easy')}
-            size="sm"
-            variant={filter === 'easy' ? 'primary' : 'secondary'}
-          >
-            EASY
-          </GlassButton>
-          <GlassButton
             onClick={() => setFilter('normal')}
             size="sm"
             variant={filter === 'normal' ? 'primary' : 'secondary'}
@@ -175,6 +168,13 @@ export default function Leaderboard() {
             variant={filter === 'hard' ? 'primary' : 'secondary'}
           >
             HARD
+          </GlassButton>
+          <GlassButton
+            onClick={() => setFilter('insane')}
+            size="sm"
+            variant={filter === 'insane' ? 'primary' : 'secondary'}
+          >
+            INSANE
           </GlassButton>
         </div>
 
