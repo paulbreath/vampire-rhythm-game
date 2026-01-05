@@ -47,6 +47,13 @@ export default function Home() {
           </Button>
           
           <Button
+            onClick={() => setLocation("/map")}
+            className="pixel-button bg-secondary text-secondary-foreground hover:bg-secondary/90 w-64"
+          >
+            CASTLE MAP
+          </Button>
+          
+          <Button
             onClick={() => setLocation("/stages")}
             className="pixel-button bg-secondary text-secondary-foreground hover:bg-secondary/90 w-64"
           >

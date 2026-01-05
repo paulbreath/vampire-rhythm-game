@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { getSongById, SONGS } from "@/data/songs";
 import { SoundEffectsManager } from "@/lib/soundEffects";
 import { progressManager, STAGES, DIFFICULTY_CONFIGS, type DifficultyLevel } from "@/lib/progressManager";
+import { mapNodeIdToStageId } from "@/data/mapToStageMapping";
+import { MAP_NODES } from "@/data/mapNodes";
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,18 +30,34 @@ export default function Game() {
 
     // 从 URL 获取关卡和难度
     const urlParams = new URLSearchParams(window.location.search);
-    const stageId = urlParams.get('stage') || STAGES[0].id;
+    const stageParam = urlParams.get('stage') || STAGES[0].id;
     const difficulty = (urlParams.get('difficulty') as DifficultyLevel) || 'normal';
     
-    // 获取关卡配置
-    const currentStage = STAGES.find(s => s.id === stageId) || STAGES[0];
-    const difficultyConfig = DIFFICULTY_CONFIGS[difficulty];
+    // 检查是否是新的地图节点ID
+    const mapNode = MAP_NODES[stageParam];
+    let currentStage;
+    let songId;
+    let stageId; // 用于保存进度的stage ID
     
-    // 根据stage.music获取歌曲，兼容旧的song参数
-    const songId = urlParams.get('song') || currentStage.music;
+    if (mapNode) {
+      // 新的地图系统：使用地图节点的音乐配置
+      const mappedStageId = mapNodeIdToStageId(stageParam);
+      currentStage = STAGES.find(s => s.id === mappedStageId) || STAGES[0];
+      stageId = currentStage.id;
+      songId = mapNode.music; // 使用地图节点指定的音乐
+      console.log('Loading map node:', mapNode.name, 'mapped to stage:', currentStage.name);
+    } else {
+      // 旧的stage系统：向后兼容
+      currentStage = STAGES.find(s => s.id === stageParam) || STAGES[0];
+      stageId = currentStage.id;
+      songId = urlParams.get('song') || currentStage.music;
+      console.log('Loading stage (legacy):', currentStage.name);
+    }
+    
+    const difficultyConfig = DIFFICULTY_CONFIGS[difficulty];
     const currentSong = getSongById(songId) || SONGS[0];
     
-    console.log('Loading stage:', currentStage.name, 'with music:', currentSong.title);
+    console.log('Playing music:', currentSong.title);
 
     // Initialize sound effects
     const soundEffects = new SoundEffectsManager();

@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Game from "./pages/Game";
 import Stages from "./pages/Stages";
 import Equipment from "./pages/Equipment";
+import MapSelection from "./pages/MapSelection";
 
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/game"} component={Game} />
       <Route path={"/stages"} component={Stages} />
+      <Route path={"/map"} component={MapSelection} />
       <Route path={"/equipment"} component={Equipment} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
