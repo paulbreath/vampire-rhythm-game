@@ -2,6 +2,8 @@ import { AudioManager } from './audioManager';
 import { ChartData } from './chartLoader';
 import { SpriteAnimation, AnimationState, createPlayerAnimations } from './spriteAnimation';
 import { experienceManager, type PlayerStats } from './experienceManager';
+import { newEquipmentManager } from './newEquipmentManager';
+import { WeaponConfig } from '../types/equipment';
 
 export interface Enemy {
   id: number;
@@ -152,6 +154,11 @@ export class GameEngine {
     // 加载玩家经验数据
     this.playerStats = experienceManager.loadStats();
     console.log('Player stats loaded:', this.playerStats);
+    
+    // 从装备管理器获取最大生命值
+    this.maxLives = newEquipmentManager.getMaxHearts();
+    this.lives = this.maxLives;
+    console.log('Max lives from equipment:', this.maxLives);
     
     // 初始化玩家位置（只支持横屏）
     this.player = this.initializePlayer();
@@ -1315,31 +1322,10 @@ export class GameEngine {
       }
     });
 
-    // 绘制切削轨迹
+    // 绘制攻击轨迹（根据武器配置）
     if (this.swipeTrail.length > 1) {
-      const gradient = this.ctx.createLinearGradient(
-        this.swipeTrail[0].x,
-        this.swipeTrail[0].y,
-        this.swipeTrail[this.swipeTrail.length - 1].x,
-        this.swipeTrail[this.swipeTrail.length - 1].y
-      );
-      gradient.addColorStop(0, '#ff000000');
-      gradient.addColorStop(1, '#ff0000ff');
-      
-      this.ctx.strokeStyle = gradient;
-      this.ctx.lineWidth = 5;
-      this.ctx.lineCap = 'round';
-      this.ctx.lineJoin = 'round';
-      this.ctx.shadowColor = '#ff0000';
-      this.ctx.shadowBlur = 10;
-      
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.swipeTrail[0].x, this.swipeTrail[0].y);
-      for (let i = 1; i < this.swipeTrail.length; i++) {
-        this.ctx.lineTo(this.swipeTrail[i].x, this.swipeTrail[i].y);
-      }
-      this.ctx.stroke();
-            this.ctx.shadowBlur = 0;
+      const weaponConfig = newEquipmentManager.getCurrentWeaponConfig();
+      this.renderAttackTrail(weaponConfig);
     }
     
     // 绘制心形道具
@@ -1459,4 +1445,175 @@ export class GameEngine {
   }
   
   // getOrientation已移除，只支持横屏模式
+  
+  // 渲染政击轨迹（根据武器配置）
+  private renderAttackTrail(weaponConfig: WeaponConfig): void {
+    const trailType = weaponConfig.trailType;
+    const lineWidth = weaponConfig.lineWidth;
+    const color = weaponConfig.color;
+    
+    // 创建渐变色（从透明到实色）
+    const gradient = this.ctx.createLinearGradient(
+      this.swipeTrail[0].x,
+      this.swipeTrail[0].y,
+      this.swipeTrail[this.swipeTrail.length - 1].x,
+      this.swipeTrail[this.swipeTrail.length - 1].y
+    );
+    
+    // 将颜色转换为透明版本
+    const colorWithAlpha = color + '00'; // 透明
+    const colorSolid = color + 'ff'; // 不透明
+    gradient.addColorStop(0, colorWithAlpha);
+    gradient.addColorStop(1, colorSolid);
+    
+    this.ctx.strokeStyle = gradient;
+    this.ctx.lineWidth = lineWidth;
+    this.ctx.lineCap = 'round';
+    this.ctx.lineJoin = 'round';
+    this.ctx.shadowColor = color;
+    this.ctx.shadowBlur = 10;
+    
+    // 根据不同的轨迹类型绘制
+    switch (trailType) {
+      case 'single_line':
+        this.renderSingleLine();
+        break;
+      case 'dual_line':
+        this.renderDualLine(weaponConfig.dualLineSpacing || 50);
+        break;
+      case 'thick_line':
+      case 'ultra_thick':
+        this.renderSingleLine(); // 粗线和超粗线使用相同的绘制逻辑，只是线宽不同
+        break;
+      case 'wave_line':
+        this.renderWaveLine();
+        break;
+      case 'arc_line':
+        this.renderArcLine();
+        break;
+      default:
+        this.renderSingleLine();
+    }
+    
+    this.ctx.shadowBlur = 0;
+  }
+  
+  // 绘制单线攻击
+  private renderSingleLine(): void {
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.swipeTrail[0].x, this.swipeTrail[0].y);
+    for (let i = 1; i < this.swipeTrail.length; i++) {
+      this.ctx.lineTo(this.swipeTrail[i].x, this.swipeTrail[i].y);
+    }
+    this.ctx.stroke();
+  }
+  
+  // 绘制双线攻击（双剑）
+  private renderDualLine(spacing: number): void {
+    // 计算垂直于轨迹的偏移方向
+    for (let lineOffset = 0; lineOffset < 2; lineOffset++) {
+      const offset = (lineOffset === 0 ? -spacing / 2 : spacing / 2);
+      
+      this.ctx.beginPath();
+      for (let i = 0; i < this.swipeTrail.length; i++) {
+        const point = this.swipeTrail[i];
+        
+        // 计算垂直方向
+        let perpX = 0;
+        let perpY = 0;
+        if (i < this.swipeTrail.length - 1) {
+          const nextPoint = this.swipeTrail[i + 1];
+          const dx = nextPoint.x - point.x;
+          const dy = nextPoint.y - point.y;
+          const length = Math.sqrt(dx * dx + dy * dy);
+          if (length > 0) {
+            perpX = -dy / length * offset;
+            perpY = dx / length * offset;
+          }
+        } else if (i > 0) {
+          const prevPoint = this.swipeTrail[i - 1];
+          const dx = point.x - prevPoint.x;
+          const dy = point.y - prevPoint.y;
+          const length = Math.sqrt(dx * dx + dy * dy);
+          if (length > 0) {
+            perpX = -dy / length * offset;
+            perpY = dx / length * offset;
+          }
+        }
+        
+        const offsetX = point.x + perpX;
+        const offsetY = point.y + perpY;
+        
+        if (i === 0) {
+          this.ctx.moveTo(offsetX, offsetY);
+        } else {
+          this.ctx.lineTo(offsetX, offsetY);
+        }
+      }
+      this.ctx.stroke();
+    }
+  }
+  
+  // 绘制波浪线攻击（鞭子）
+  private renderWaveLine(): void {
+    this.ctx.beginPath();
+    for (let i = 0; i < this.swipeTrail.length; i++) {
+      const point = this.swipeTrail[i];
+      const waveOffset = Math.sin(i * 0.5) * 10; // 波浪偏移
+      
+      // 计算垂直方向
+      let perpX = 0;
+      let perpY = 0;
+      if (i < this.swipeTrail.length - 1) {
+        const nextPoint = this.swipeTrail[i + 1];
+        const dx = nextPoint.x - point.x;
+        const dy = nextPoint.y - point.y;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        if (length > 0) {
+          perpX = -dy / length * waveOffset;
+          perpY = dx / length * waveOffset;
+        }
+      }
+      
+      const offsetX = point.x + perpX;
+      const offsetY = point.y + perpY;
+      
+      if (i === 0) {
+        this.ctx.moveTo(offsetX, offsetY);
+      } else {
+        this.ctx.lineTo(offsetX, offsetY);
+      }
+    }
+    this.ctx.stroke();
+  }
+  
+  // 绘制弧形线政击（镰刀）
+  private renderArcLine(): void {
+    if (this.swipeTrail.length < 2) return;
+    
+    const startPoint = this.swipeTrail[0];
+    const endPoint = this.swipeTrail[this.swipeTrail.length - 1];
+    
+    // 计算控制点（弧形的中点）
+    const midX = (startPoint.x + endPoint.x) / 2;
+    const midY = (startPoint.y + endPoint.y) / 2;
+    
+    // 计算垂直方向的偏移，创造弧形效果
+    const dx = endPoint.x - startPoint.x;
+    const dy = endPoint.y - startPoint.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const arcOffset = length * 0.3; // 弧形的弯曲程度
+    
+    const perpX = -dy / length * arcOffset;
+    const perpY = dx / length * arcOffset;
+    
+    const controlX = midX + perpX;
+    const controlY = midY + perpY;
+    
+    // 绘制二次贝塞尔曲线
+    this.ctx.beginPath();
+    this.ctx.moveTo(startPoint.x, startPoint.y);
+    this.ctx.quadraticCurveTo(controlX, controlY, endPoint.x, endPoint.y);
+    this.ctx.stroke();
+  }
 }

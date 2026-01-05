@@ -1,3 +1,25 @@
+// 装备掉落池配置（每个关卡可掉落的装备ID列表）
+export const MAP_EQUIPMENT_DROPS: Record<string, string[]> = {
+  'abandoned-church': ['dagger', 'cloth_armor', 'leather_armor'],
+  'bell-tower': ['dual_swords', 'leather_armor', 'chain_mail'],
+  'catacombs': ['dual_swords', 'flail', 'chain_mail'],
+  'misty-graveyard': ['flail', 'leather_armor', 'chain_mail'],
+  'ancient-tomb': ['flail', 'greatsword', 'chain_mail', 'plate_armor'],
+  'cursed-forest': ['greatsword', 'whip', 'plate_armor'],
+  'castle-hall': ['flail', 'greatsword', 'chain_mail', 'plate_armor'],
+  'library': ['whip', 'scythe', 'plate_armor', 'legendary_armor'],
+  'alchemy-lab': ['greatsword', 'whip', 'plate_armor'],
+  'throne-room': ['scythe', 'whip', 'legendary_armor']
+};
+
+// 装备稀有度对应的积分（重复装备转换）
+export const EQUIPMENT_RARITY_SCORES: Record<string, number> = {
+  common: 100,
+  rare: 300,
+  epic: 800,
+  legendary: 2000
+};
+
 // 地图节点数据结构
 export interface MapNode {
   id: string;

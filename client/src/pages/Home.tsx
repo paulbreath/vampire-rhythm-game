@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { newEquipmentManager } from '@/lib/newEquipmentManager';
+import { toast } from 'sonner';
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -65,6 +67,26 @@ export default function Home() {
             className="pixel-button bg-accent text-accent-foreground hover:bg-accent/90 w-64"
           >
             EQUIPMENT
+          </Button>
+          
+          <Button
+            onClick={() => setLocation("/leaderboard")}
+            className="pixel-button bg-accent text-accent-foreground hover:bg-accent/90 w-64"
+          >
+            LEADERBOARD
+          </Button>
+          
+          {/* 测试按钮：解锁所有装备 */}
+          <Button
+            onClick={() => {
+              newEquipmentManager.unlockAll();
+              toast.success('🎉 All equipment unlocked! (Test Mode)', {
+                duration: 2000
+              });
+            }}
+            className="pixel-button bg-destructive text-destructive-foreground hover:bg-destructive/90 w-64 text-xs"
+          >
+            🔓 UNLOCK ALL (TEST)
           </Button>
         </div>
 

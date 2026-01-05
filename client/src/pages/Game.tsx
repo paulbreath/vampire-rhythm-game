@@ -11,7 +11,9 @@ import { progressManager, STAGES, DIFFICULTY_CONFIGS, type DifficultyLevel } fro
 import { mapNodeIdToStageId, getMapNodeBackground } from "@/data/mapToStageMapping";
 import { MAP_NODES } from "@/data/mapNodes";
 import { experienceManager, type PlayerStats } from '@/lib/experienceManager';
-import { equipmentManager } from '@/lib/equipmentManager';
+import { newEquipmentManager } from '@/lib/newEquipmentManager';
+import { equipmentDropManager, type DropResult } from '@/lib/equipmentDropManager';
+import { leaderboardManager } from '@/lib/leaderboardManager';
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -22,12 +24,15 @@ export default function Game() {
   const [, setLocation] = useLocation();
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
-  const [health, setHealth] = useState(3);
+  const [health, setHealth] = useState(newEquipmentManager.getMaxHearts());
+  const [maxHealth, setMaxHealth] = useState(newEquipmentManager.getMaxHearts());
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [playerStats, setPlayerStats] = useState<PlayerStats>(experienceManager.loadStats());
-  const [equipmentStats, setEquipmentStats] = useState(equipmentManager.calculateStats());
+  const [newEquipmentStats, setNewEquipmentStats] = useState(newEquipmentManager.getPlayerStats());
+  const [equipmentDrops, setEquipmentDrops] = useState<DropResult[]>([]);
+  const [showDropReward, setShowDropReward] = useState(false);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -159,6 +164,34 @@ export default function Game() {
                 );
                 console.log('Stage completed! Progress saved:', newProgress);
                 toast.success(`🎉 Stage ${stageIndex + 1} cleared on ${difficulty.toUpperCase()}!`);
+                
+                // 生成装备掉落（使用mapNode ID或stage ID）
+                const dropStageId = mapNode ? stageParam : stageId;
+                const drops = equipmentDropManager.generateDrops(dropStageId, 2);
+                setEquipmentDrops(drops);
+                
+                // 计算重复装备转换的积分
+                const convertedScore = equipmentDropManager.calculateTotalConvertedScore(drops);
+                if (convertedScore > 0) {
+                  setScore(prev => prev + convertedScore);
+                  console.log('Duplicate equipment converted to score:', convertedScore);
+                }
+                
+                // 显示掉落奖励界面
+                setShowDropReward(true);
+                
+                // 保存排行榜记录
+                const stageName = mapNode ? mapNode.name : currentStage.name;
+                leaderboardManager.saveScore({
+                  playerName: 'Player', // 默认玩家名，后续可以让用户设置
+                  playerAvatar: '🧛', // 吸血鬼 emoji
+                  score: score + convertedScore, // 包含装备转换积分
+                  combo: combo,
+                  stageId: dropStageId,
+                  stageName: stageName,
+                  difficulty: difficulty,
+                  timestamp: Date.now()
+                });
               }
             }
           }
@@ -223,6 +256,8 @@ export default function Game() {
   }, []);
 
   const handleStart = () => {
+    setShowDropReward(false);
+    setEquipmentDrops([]);
     if (!gameEngineRef.current) {
       toast.error('Game engine not ready');
       return;
@@ -297,16 +332,13 @@ export default function Game() {
             <div className="text-xl glow-purple font-bold">{combo}x</div>
           </div>
 
-          {/* Equipment Stats */}
-          {(equipmentStats.totalAttack > 0 || equipmentStats.totalHP > 0) && (
-            <div className="text-center">
-              <div className="text-xs text-muted-foreground">EQUIPMENT</div>
-              <div className="text-xs">
-                {equipmentStats.totalAttack > 0 && <span className="text-red-400">⚔️+{equipmentStats.totalAttack} </span>}
-                {equipmentStats.totalHP > 0 && <span className="text-green-400">❤️+{equipmentStats.totalHP}</span>}
-              </div>
+          {/* Equipment Stats - 新装备系统 */}
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground">EQUIPMENT</div>
+            <div className="text-xs">
+              <span className="text-yellow-400">🛡️ {newEquipmentStats.maxHearts}❤️</span>
             </div>
-          )}
+          </div>
 
           {/* Health */}
           <div className="text-center">
@@ -315,7 +347,7 @@ export default function Game() {
               {[...Array(Math.max(0, health))].map((_, i) => (
                 <span key={i}>❤️</span>
               ))}
-              {[...Array(Math.max(0, 3 - Math.max(0, health)))].map((_, i) => (
+              {[...Array(Math.max(0, maxHealth - Math.max(0, health)))].map((_, i) => (
                 <span key={i} className="opacity-30">💔</span>
               ))}
             </div>
@@ -363,7 +395,7 @@ export default function Game() {
         />
 
         {/* Game Over Overlay */}
-        {isGameOver && (
+        {isGameOver && !showDropReward && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/90">
             <div className="text-center space-y-6 p-8 bg-card border-4 border-border rounded-lg">
               <h2 className="text-4xl glow-red" style={{ fontFamily: 'Creepster, cursive' }}>
@@ -374,6 +406,66 @@ export default function Game() {
                 <p className="text-lg">Max Combo: <span className="glow-purple">{combo}x</span></p>
               </div>
               <div className="flex gap-4">
+                <Button
+                  onClick={handleStart}
+                  className="pixel-button bg-primary text-primary-foreground"
+                >
+                  RESTART
+                </Button>
+                <Button
+                  onClick={() => setLocation("/")}
+                  className="pixel-button bg-secondary text-secondary-foreground"
+                >
+                  MENU
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Equipment Drop Reward Overlay */}
+        {showDropReward && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/95">
+            <div className="text-center space-y-6 p-8 bg-card border-4 border-border rounded-lg max-w-2xl">
+              <h2 className="text-4xl glow-gold" style={{ fontFamily: 'Creepster, cursive' }}>
+                STAGE CLEAR!
+              </h2>
+              
+              <div className="space-y-2">
+                <p className="text-xl">Final Score: <span className="glow-gold">{score.toLocaleString()}</span></p>
+                <p className="text-lg">Max Combo: <span className="glow-purple">{combo}x</span></p>
+              </div>
+              
+              {/* Equipment Drops */}
+              {equipmentDrops.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-2xl glow-purple">Equipment Rewards</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {equipmentDrops.map((drop, index) => (
+                      <div 
+                        key={index}
+                        className="p-4 bg-background border-2 rounded-lg"
+                        style={{ borderColor: drop.rarityColor }}
+                      >
+                        <div className="text-4xl mb-2">{drop.icon}</div>
+                        <div className="text-lg font-bold" style={{ color: drop.rarityColor }}>
+                          {drop.equipmentNameZh}
+                        </div>
+                        <div className="text-sm text-muted-foreground">{drop.equipmentName}</div>
+                        {drop.isNew ? (
+                          <div className="text-green-400 text-sm mt-2">✨ NEW!</div>
+                        ) : (
+                          <div className="text-yellow-400 text-sm mt-2">
+                            💰 +{drop.convertedScore} pts
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex gap-4 justify-center">
                 <Button
                   onClick={handleStart}
                   className="pixel-button bg-primary text-primary-foreground"

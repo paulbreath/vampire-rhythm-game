@@ -7,8 +7,9 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Game from "./pages/Game";
 import Stages from "./pages/Stages";
-import Equipment from "./pages/Equipment";
+import NewEquipment from "./pages/NewEquipment";
 import MapSelection from "./pages/MapSelection";
+import Leaderboard from "./pages/Leaderboard";
 
 
 function Router() {
@@ -18,7 +19,8 @@ function Router() {
       <Route path={"/game"} component={Game} />
       <Route path={"/stages"} component={Stages} />
       <Route path={"/map"} component={MapSelection} />
-      <Route path={"/equipment"} component={Equipment} />
+      <Route path={"/equipment"} component={NewEquipment} />
+      <Route path={"/leaderboard"} component={Leaderboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
