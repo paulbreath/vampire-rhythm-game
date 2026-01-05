@@ -47,6 +47,8 @@ export interface Player {
   attackDashDuration?: number; // 攻击冲刺持续时间
   spriteAnimation?: any; // SpriteAnimation实例（新系统）
   animationState?: string; // 当前动画状态名称（idle/attack/hit）
+  isInvincible?: boolean; // 是否处于无敌状态
+  invincibleEndTime?: number; // 无敌状态结束时间
 }
 
 export interface Particle {
@@ -140,10 +142,20 @@ export class GameEngine {
   // 难度倍率
   private speedMultiplier: number = 1.0;
   private densityMultiplier: number = 1.0;
+  private difficulty: 'easy' | 'normal' | 'hard' = 'normal'; // 难度等级
 
   constructor(canvas: HTMLCanvasElement, speedMultiplier: number = 1.0, densityMultiplier: number = 1.0) {
     this.speedMultiplier = speedMultiplier;
     this.densityMultiplier = densityMultiplier;
+    
+    // 根据speedMultiplier推断难度
+    if (speedMultiplier <= 1.0) {
+      this.difficulty = 'easy';
+    } else if (speedMultiplier <= 1.3) {
+      this.difficulty = 'normal';
+    } else {
+      this.difficulty = 'hard';
+    }
     this.canvas = canvas;
     const context = canvas.getContext('2d');
     if (!context) {
@@ -797,10 +809,12 @@ export class GameEngine {
       enemy.maxHealth = 10;
       enemy.guardBombs = [];
       
-      // 生成1个护卫炸弹
+      // 根据难度生成不同数量的护卫炸弹
       const guardRadius = 100; // 环绕半径
-      for (let i = 0; i < 1; i++) {
-        const guardAngle = (Math.PI * 2 / 1) * i; // 均匀分布在圆周上
+      const guardCount = this.difficulty === 'easy' ? 1 : this.difficulty === 'normal' ? 2 : 3;
+      
+      for (let i = 0; i < guardCount; i++) {
+        const guardAngle = (Math.PI * 2 / guardCount) * i; // 均匀分布在圆周上
         const guardX = x + Math.cos(guardAngle) * guardRadius;
         const guardY = y + Math.sin(guardAngle) * guardRadius;
         
@@ -1137,6 +1151,10 @@ export class GameEngine {
     this.onLivesChange?.(this.lives);
     this.onComboChange?.(this.combo);
     
+    // 设置无敌状态和视觉反馈
+    this.player.isInvincible = true;
+    this.player.invincibleEndTime = now + 500; // 500ms无敌时间
+    
     console.log(`Lost life! Remaining lives: ${this.lives}`);
     
     if (this.lives <= 0) {
@@ -1235,6 +1253,30 @@ export class GameEngine {
         this.ctx.shadowBlur = attackGlow;
       }
       
+      // 受伤时的视觉反馈：闪烁效果
+      const now = Date.now();
+      if (this.player.isInvincible && this.player.invincibleEndTime) {
+        // 检查无敌状态是否结束
+        if (now >= this.player.invincibleEndTime) {
+          this.player.isInvincible = false;
+          this.player.invincibleEndTime = undefined;
+        } else {
+          // 无敌期间：闪烁效果（每100ms切换一次）
+          const blinkInterval = 100;
+          const shouldShow = Math.floor((this.player.invincibleEndTime - now) / blinkInterval) % 2 === 0;
+          
+          if (shouldShow) {
+            // 显示时添加红色滤镜
+            this.ctx.globalAlpha = 0.7;
+            this.ctx.shadowColor = '#ff0000';
+            this.ctx.shadowBlur = 20;
+          } else {
+            // 隐藏时降低透明度
+            this.ctx.globalAlpha = 0.3;
+          }
+        }
+      }
+      
       this.ctx.drawImage(
         this.player.image,
         -this.player.width / 2,
@@ -1242,6 +1284,9 @@ export class GameEngine {
         this.player.width,
         this.player.height
       );
+      
+      // 恢复透明度
+      this.ctx.globalAlpha = 1.0;
       
       this.ctx.restore();
     } else {
@@ -1437,6 +1482,73 @@ export class GameEngine {
     
     // 恢复屏幕震动
     this.ctx.restore();
+    
+    // 绘制屏幕顶部BOSS血条UI
+    this.renderBossHealthBar();
+  }
+  
+  private renderBossHealthBar(): void {
+    // 查找当前BOSS
+    const boss = this.enemies.find(e => e.isBoss);
+    if (!boss || boss.health === undefined || boss.maxHealth === undefined) {
+      return; // 没有BOSS或BOSS已死亡
+    }
+    
+    const canvas = this.canvas;
+    const barWidth = canvas.width * 0.6; // 占屏幕宽度60%
+    const barHeight = 30;
+    const barX = (canvas.width - barWidth) / 2; // 居中
+    const barY = 20; // 距离顶部20px
+    
+    // 绘制半透明黑色背景
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 40);
+    
+    // BOSS名称
+    this.ctx.fillStyle = '#ff0000';
+    this.ctx.font = 'bold 20px "Creepster", cursive';
+    this.ctx.textAlign = 'center';
+    this.ctx.shadowColor = '#000000';
+    this.ctx.shadowBlur = 5;
+    this.ctx.fillText('🧛 VAMPIRE LORD', canvas.width / 2, barY - 15);
+    this.ctx.shadowBlur = 0;
+    
+    // 血条背景（深灰色）
+    this.ctx.fillStyle = '#1a1a1a';
+    this.ctx.fillRect(barX, barY, barWidth, barHeight);
+    
+    // 血量条（红色渐变到金色）
+    const healthPercent = boss.health / boss.maxHealth;
+    const healthBarWidth = barWidth * healthPercent;
+    
+    if (healthBarWidth > 0) {
+      const healthGradient = this.ctx.createLinearGradient(barX, barY, barX + barWidth, barY);
+      healthGradient.addColorStop(0, '#8b0000'); // 深红色
+      healthGradient.addColorStop(0.5, '#ff0000'); // 红色
+      healthGradient.addColorStop(1, '#ff4500'); // 橙红色
+      this.ctx.fillStyle = healthGradient;
+      this.ctx.fillRect(barX, barY, healthBarWidth, barHeight);
+      
+      // 血条发光效果
+      this.ctx.shadowColor = '#ff0000';
+      this.ctx.shadowBlur = 10;
+      this.ctx.fillRect(barX, barY, healthBarWidth, barHeight);
+      this.ctx.shadowBlur = 0;
+    }
+    
+    // 边框（金色）
+    this.ctx.strokeStyle = '#ffd700';
+    this.ctx.lineWidth = 3;
+    this.ctx.strokeRect(barX, barY, barWidth, barHeight);
+    
+    // 血量数字
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.font = 'bold 18px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.shadowColor = '#000000';
+    this.ctx.shadowBlur = 3;
+    this.ctx.fillText(`${boss.health} / ${boss.maxHealth}`, canvas.width / 2, barY + barHeight / 2 + 6);
+    this.ctx.shadowBlur = 0;
   }
 
   public getScore(): number {
