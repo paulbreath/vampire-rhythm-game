@@ -179,8 +179,8 @@ class ProgressManager {
 
   // 检查关卡是否解锁
   isStageUnlocked(progress: PlayerProgress, stageIndex: number, difficulty: DifficultyLevel): boolean {
-    // Normal难度的第一关永远解锁
-    if (stageIndex === 0 && difficulty === 'normal') {
+    // 测试模式：所有Normal难度关卡默认解锁
+    if (difficulty === 'normal') {
       return true;
     }
 
@@ -189,7 +189,7 @@ class ProgressManager {
       return false;
     }
 
-    // 检查前一关的当前难度是否完成
+    // Hard和Insane难度仍需要完成前一关
     if (stageIndex > 0) {
       const prevStage = progress.stages[stageIndex - 1];
       return prevStage.progress[difficulty].completed;
