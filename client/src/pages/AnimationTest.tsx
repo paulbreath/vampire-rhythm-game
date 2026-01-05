@@ -78,6 +78,10 @@ export default function AnimationTest() {
               if (isPlaying && animations[currentAnimation]) {
                 animations[currentAnimation].update(deltaTime);
                 
+                // 清除Canvas背景(深色背景,不是棋盘格)
+                ctx.fillStyle = '#1a1a2e'; // 深色背景
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // 居中渲染
                 const scale = 0.5; // 缩放到合适大小,让主角更清晰可见
                 const spriteWidth = 688 * scale;
@@ -107,21 +111,21 @@ export default function AnimationTest() {
           checkAllLoaded();
         };
         idleImg.onerror = () => console.error('Failed to load IDLE sprite');
-        idleImg.src = '/images/alucard-idle-final.png';
+        idleImg.src = '/images/alucard-idle-transparent.png';
 
         attackImg.onload = () => {
           console.log('ATTACK sprite loaded');
           checkAllLoaded();
         };
         attackImg.onerror = () => console.error('Failed to load ATTACK sprite');
-        attackImg.src = '/images/alucard-attack-final.png';
+        attackImg.src = '/images/alucard-attack-transparent.png';
 
         hurtImg.onload = () => {
           console.log('HURT sprite loaded');
           checkAllLoaded();
         };
         hurtImg.onerror = () => console.error('Failed to load HURT sprite');
-        hurtImg.src = '/images/alucard-hurt-final.png';
+        hurtImg.src = '/images/alucard-hurt-v2.png';
       });
     });
   }, [currentAnimation, isPlaying]);
