@@ -1,5 +1,22 @@
 // 像素图标配置和工具函数
 
+// 图标版本配置
+export type IconVersion = 'v1' | 'v2';
+let currentIconVersion: IconVersion = 'v2'; // 默认使用v2（更精细）
+
+export function setIconVersion(version: IconVersion) {
+  currentIconVersion = version;
+}
+
+export function getIconVersion(): IconVersion {
+  return currentIconVersion;
+}
+
+function getIconPath(type: 'weapons' | 'armor' | 'ui'): string {
+  const suffix = currentIconVersion === 'v2' ? '-v2' : '';
+  return `/images/pixel-icons-${type}${suffix}.png`;
+}
+
 // 武器图标位置映射（sprite sheet中的索引）
 export const WEAPON_ICON_POSITIONS: Record<string, number> = {
   'dagger': 0,
@@ -38,15 +55,18 @@ export const UI_ICON_POSITIONS = {
 // 获取武器图标的CSS background-position
 export function getWeaponIconStyle(weaponId: string): React.CSSProperties {
   const index = WEAPON_ICON_POSITIONS[weaponId] ?? 0;
-  const iconWidth = 64; // 每个图标64px（32px图标 + 32px间距）
+  // 实际图片尺寸: 2752x1536px, 6个图标横向排列
+  // 每个图标大约: 2752/6 ≈ 459px
+  const spriteIconWidth = 459;
+  const displaySize = 48; // 显示尺寸
   
   return {
-    backgroundImage: 'url(/images/pixel-icons-weapons.png)',
-    backgroundPosition: `-${index * iconWidth}px 0`,
-    backgroundSize: `${6 * iconWidth}px 64px`,
+    backgroundImage: `url(${getIconPath('weapons')})`,
+    backgroundPosition: `-${index * spriteIconWidth * displaySize / spriteIconWidth}px 0`,
+    backgroundSize: `${6 * displaySize}px auto`,
     backgroundRepeat: 'no-repeat',
-    width: '48px',
-    height: '48px',
+    width: `${displaySize}px`,
+    height: `${displaySize}px`,
     imageRendering: 'pixelated' as const,
     display: 'inline-block'
   };
@@ -55,15 +75,18 @@ export function getWeaponIconStyle(weaponId: string): React.CSSProperties {
 // 获取防具图标的CSS background-position
 export function getArmorIconStyle(armorId: string): React.CSSProperties {
   const index = ARMOR_ICON_POSITIONS[armorId] ?? 0;
-  const iconWidth = 64;
+  // 实际图片尺寸: 2752x1536px, 5个图标横向排列
+  // 每个图标大约: 2752/5 ≈ 550px
+  const spriteIconWidth = 550;
+  const displaySize = 48;
   
   return {
-    backgroundImage: 'url(/images/pixel-icons-armor.png)',
-    backgroundPosition: `-${index * iconWidth}px 0`,
-    backgroundSize: `${5 * iconWidth}px 64px`,
+    backgroundImage: `url(${getIconPath('armor')})`,
+    backgroundPosition: `-${index * displaySize}px 0`,
+    backgroundSize: `${5 * displaySize}px auto`,
     backgroundRepeat: 'no-repeat',
-    width: '48px',
-    height: '48px',
+    width: `${displaySize}px`,
+    height: `${displaySize}px`,
     imageRendering: 'pixelated' as const,
     display: 'inline-block'
   };
@@ -72,15 +95,18 @@ export function getArmorIconStyle(armorId: string): React.CSSProperties {
 // 获取UI图标的CSS background-position
 export function getUIIconStyle(iconName: keyof typeof UI_ICON_POSITIONS): React.CSSProperties {
   const pos = UI_ICON_POSITIONS[iconName];
-  const iconSize = 32; // 24px图标 + 8px间距
+  // 实际图片尺寸: 2048x2048px, 4x4网格
+  // 每个图标: 2048/4 = 512px
+  const spriteIconSize = 512;
+  const displaySize = 32; // 显示尺寸
   
   return {
-    backgroundImage: 'url(/images/pixel-icons-ui.png)',
-    backgroundPosition: `-${pos.col * iconSize}px -${pos.row * iconSize}px`,
-    backgroundSize: `${3 * iconSize}px ${4 * iconSize}px`,
+    backgroundImage: `url(${getIconPath('ui')})`,
+    backgroundPosition: `-${pos.col * displaySize}px -${pos.row * displaySize}px`,
+    backgroundSize: `${4 * displaySize}px ${4 * displaySize}px`,
     backgroundRepeat: 'no-repeat',
-    width: '24px',
-    height: '24px',
+    width: `${displaySize}px`,
+    height: `${displaySize}px`,
     imageRendering: 'pixelated' as const,
     display: 'inline-block'
   };
