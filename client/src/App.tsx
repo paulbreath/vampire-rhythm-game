@@ -9,6 +9,7 @@ import Game from "./pages/Game";
 import NewEquipment from "./pages/NewEquipment";
 import MapSelection from "./pages/MapSelection";
 import Leaderboard from "./pages/Leaderboard";
+import { AnimationDemo } from "./pages/AnimationDemo";
 
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path={"/map"} component={MapSelection} />
       <Route path={"/equipment"} component={NewEquipment} />
       <Route path={"/leaderboard"} component={Leaderboard} />
+      <Route path={"/animation-demo"} component={AnimationDemo} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
