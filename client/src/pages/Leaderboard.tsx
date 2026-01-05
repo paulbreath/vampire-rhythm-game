@@ -201,7 +201,7 @@ export default function Leaderboard() {
 
                 return (
                   <div
-                    key={entry.id}
+                    key={`${entry.playerName}-${entry.timestamp}`}
                     className="bg-black/60 backdrop-blur-sm border-2 rounded-lg p-4 transition-all hover:scale-105"
                     style={{
                       borderColor: rank <= 3 ? rankColor : 'rgba(107, 114, 128, 0.5)',
@@ -225,7 +225,7 @@ export default function Leaderboard() {
                       {/* 玩家信息 */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-2xl">{entry.avatar}</span>
+                          <span className="text-2xl">{entry.playerAvatar}</span>
                           <span className="text-white font-bold text-lg truncate">
                             {entry.playerName}
                           </span>

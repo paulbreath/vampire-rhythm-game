@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { GlassButton } from "@/components/ui/glass-button";
 import { newEquipmentManager } from "@/lib/newEquipmentManager";
-import { WEAPONS, ARMORS, RARITY_CONFIG } from "@/data/newEquipmentData";
+import { WEAPONS, ARMORS, RARITY_CONFIG, getWeaponById, getArmorById } from "@/data/newEquipmentData";
 import type { Weapon, Armor } from "@/types/equipment";
 
 export default function NewEquipment() {
@@ -80,8 +80,8 @@ export default function NewEquipment() {
     return config?.color || '#ffffff';
   };
 
-  const filteredWeapons = filter === 'armor' ? [] : Object.values(WEAPONS);
-  const filteredArmors = filter === 'weapon' ? [] : Object.values(ARMORS);
+  const filteredWeapons = filter === 'armor' ? [] : WEAPONS;
+  const filteredArmors = filter === 'weapon' ? [] : ARMORS;
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-black">
@@ -142,15 +142,15 @@ export default function NewEquipment() {
             {/* 武器槽 */}
             <div className="bg-red-900/30 border-2 border-red-600/50 rounded-lg p-4">
               <p className="text-red-400 text-sm font-bold mb-2 text-center">WEAPON</p>
-              {selectedWeapon && WEAPONS[selectedWeapon as keyof typeof WEAPONS] ? (
+              {selectedWeapon && getWeaponById(selectedWeapon) ? (
                 <div className="text-center">
-                  <div className="text-5xl mb-2">{WEAPONS[selectedWeapon as keyof typeof WEAPONS].icon}</div>
-                  <p className="text-white font-bold">{WEAPONS[selectedWeapon as keyof typeof WEAPONS].name}</p>
+                  <div className="text-5xl mb-2">{getWeaponById(selectedWeapon)!.icon}</div>
+                  <p className="text-white font-bold">{getWeaponById(selectedWeapon)!.name}</p>
                   <p 
                     className="text-xs mt-1"
-                    style={{ color: getRarityColor(WEAPONS[selectedWeapon as keyof typeof WEAPONS].rarity) }}
+                    style={{ color: getRarityColor(getWeaponById(selectedWeapon)!.rarity) }}
                   >
-                    {WEAPONS[selectedWeapon as keyof typeof WEAPONS].rarity.toUpperCase()}
+                    {getWeaponById(selectedWeapon)!.rarity.toUpperCase()}
                   </p>
                 </div>
               ) : (
@@ -164,15 +164,15 @@ export default function NewEquipment() {
             {/* 防具槽 */}
             <div className="bg-blue-900/30 border-2 border-blue-600/50 rounded-lg p-4">
               <p className="text-blue-400 text-sm font-bold mb-2 text-center">ARMOR</p>
-              {selectedArmor && ARMORS[selectedArmor as keyof typeof ARMORS] ? (
+              {selectedArmor && getArmorById(selectedArmor) ? (
                 <div className="text-center">
-                  <div className="text-5xl mb-2">{ARMORS[selectedArmor as keyof typeof ARMORS].icon}</div>
-                  <p className="text-white font-bold">{ARMORS[selectedArmor as keyof typeof ARMORS].name}</p>
+                  <div className="text-5xl mb-2">{getArmorById(selectedArmor)!.icon}</div>
+                  <p className="text-white font-bold">{getArmorById(selectedArmor)!.name}</p>
                   <p 
                     className="text-xs mt-1"
-                    style={{ color: getRarityColor(ARMORS[selectedArmor as keyof typeof ARMORS].rarity) }}
+                    style={{ color: getRarityColor(getArmorById(selectedArmor)!.rarity) }}
                   >
-                    {ARMORS[selectedArmor as keyof typeof ARMORS].rarity.toUpperCase()}
+                    {getArmorById(selectedArmor)!.rarity.toUpperCase()}
                   </p>
                 </div>
               ) : (
@@ -193,7 +193,7 @@ export default function NewEquipment() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Attack:</span>
-                  <span className="text-white font-bold">{selectedWeapon ? WEAPONS[selectedWeapon as keyof typeof WEAPONS].name : 'None'}</span>
+                  <span className="text-white font-bold">{selectedWeapon ? getWeaponById(selectedWeapon)?.name : 'None'}</span>
                 </div>
               </div>
             </div>
