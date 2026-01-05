@@ -59,7 +59,7 @@ export const STAGES: Omit<Stage, 'progress'>[] = [
     id: 'church',
     name: 'Church',
     scene: 'church',
-    backgroundImage: '/images/backgrounds/church.png',
+    backgroundImage: '/images/backgrounds/castle-bg.png',
     music: 'nocturnal-hunger',
   },
   {

@@ -199,60 +199,16 @@ export class GameEngine {
       console.log('Background loaded');
     };
     
-    // 加载玩家精灵 - 使用Promise确保加载完成
-    const playerIdleImg = new Image();
-    const playerAttackImg = new Image();
-    const playerFallbackImg = new Image();
-    
-    // 创建Promise数组
-    const idlePromise = new Promise<void>((resolve, reject) => {
-      playerIdleImg.onload = () => {
-        console.log('Player idle sprite sheet loaded');
-        resolve();
-      };
-      playerIdleImg.onerror = () => {
-        console.error('Failed to load idle sprite sheet');
-        reject(new Error('Idle sprite sheet load failed'));
-      };
-      playerIdleImg.src = '/images/characters/hybrid-warrior-idle-spritesheet.png';
-    });
-    
-    const attackPromise = new Promise<void>((resolve, reject) => {
-      playerAttackImg.onload = () => {
-        console.log('Player attack sprite sheet loaded');
-        resolve();
-      };
-      playerAttackImg.onerror = () => {
-        console.error('Failed to load attack sprite sheet');
-        reject(new Error('Attack sprite sheet load failed'));
-      };
-      playerAttackImg.src = '/images/characters/hybrid-warrior-attack-spritesheet.png';
-    });
-    
-    const fallbackPromise = new Promise<void>((resolve) => {
-      playerFallbackImg.onload = () => {
-        this.player.image = playerFallbackImg;
-        console.log('Player static sprite loaded (fallback)');
-        resolve();
-      };
-      playerFallbackImg.onerror = () => {
-        console.warn('Fallback image failed to load');
-        resolve(); // 不阻塞
-      };
-      playerFallbackImg.src = '/images/characters/castlevania-hero-side.png';
-    });
-    
-    imageLoadPromises.push(idlePromise, attackPromise, fallbackPromise);
-    
-    // 等待sprite sheet加载完成后初始化动画
-    try {
-      await Promise.all([idlePromise, attackPromise]);
-      this.initializePlayerAnimation(playerIdleImg, playerAttackImg);
-      console.log('Player sprite animations initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize sprite animations:', error);
-      console.log('Falling back to static image');
-    }
+    // 加载玩家静态精灵图
+    const playerImg = new Image();
+    playerImg.onload = () => {
+      this.player.image = playerImg;
+      console.log('Player static sprite loaded');
+    };
+    playerImg.onerror = () => {
+      console.error('Failed to load player sprite');
+    };
+    playerImg.src = '/images/characters/castlevania-hero-side.png';
     
     // 加载敌人精灵
     const enemyTypes: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb'];
