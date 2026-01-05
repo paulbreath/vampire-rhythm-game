@@ -145,7 +145,9 @@ export default function NewEquipment() {
               <p className="text-red-400 text-sm font-bold mb-2 text-center">WEAPON</p>
               {selectedWeapon && getWeaponById(selectedWeapon) ? (
                 <div className="text-center">
-                  <div className="text-5xl mb-2">{getWeaponById(selectedWeapon)!.icon}</div>
+                  <div className="flex justify-center mb-2">
+                    <div style={getWeaponIconStyle(selectedWeapon)} />
+                  </div>
                   <p className="text-white font-bold">{getWeaponById(selectedWeapon)!.name}</p>
                   <p 
                     className="text-xs mt-1"
@@ -167,7 +169,9 @@ export default function NewEquipment() {
               <p className="text-blue-400 text-sm font-bold mb-2 text-center">ARMOR</p>
               {selectedArmor && getArmorById(selectedArmor) ? (
                 <div className="text-center">
-                  <div className="text-5xl mb-2">{getArmorById(selectedArmor)!.icon}</div>
+                  <div className="flex justify-center mb-2">
+                    <div style={getArmorIconStyle(selectedArmor)} />
+                  </div>
                   <p className="text-white font-bold">{getArmorById(selectedArmor)!.name}</p>
                   <p 
                     className="text-xs mt-1"
