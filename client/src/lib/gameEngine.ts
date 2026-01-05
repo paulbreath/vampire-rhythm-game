@@ -885,17 +885,25 @@ export class GameEngine {
       this.player.facingRight = false;
     }
 
-    // 添加到轨迹
-    this.swipeTrail.push({ x, y, time: Date.now() });
+    // 计算攻击线起点：从主角身前中间部位发出
+    // 根据主角朝向计算偏移量
+    const attackOriginOffsetX = this.player.facingRight ? 40 : -40; // 身前40像素
+    const attackOriginOffsetY = -20; // 向上20像素（胸部/腰部位置）
+    
+    const attackOriginX = this.player.x + attackOriginOffsetX;
+    const attackOriginY = this.player.y + attackOriginOffsetY;
+    
+    // 添加到轨迹：使用主角身前的位置作为起点
+    this.swipeTrail.push({ x: attackOriginX, y: attackOriginY, time: Date.now() });
     
     // 限制轨迹长度
     if (this.swipeTrail.length > this.trailMaxLength) {
       this.swipeTrail.shift();
     }
 
-    // 检测与敌人的碰撞
+    // 检测与敌人的碰撞：使用攻击线起点坐标
     this.enemies = this.enemies.filter(enemy => {
-      const distance = Math.sqrt((x - enemy.x) ** 2 + (y - enemy.y) ** 2);
+      const distance = Math.sqrt((attackOriginX - enemy.x) ** 2 + (attackOriginY - enemy.y) ** 2);
       
       if (distance < enemy.size) {
         // 击中敌人
