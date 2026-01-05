@@ -5,6 +5,7 @@ interface GlassButtonProps {
   onClick: () => void;
   className?: string;
   icon?: string;
+  customIcon?: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'danger';
   size?: 'sm' | 'md' | 'lg';
 }
@@ -14,6 +15,7 @@ export function GlassButton({
   onClick, 
   className = "", 
   icon,
+  customIcon,
   variant = 'primary',
   size = 'md'
 }: GlassButtonProps) {
@@ -80,9 +82,11 @@ export function GlassButton({
       
       {/* 文字内容 */}
       <div className="relative z-10 flex items-center justify-center gap-3 h-full px-6">
-        {icon && (
+        {customIcon ? (
+          <div className="drop-shadow-lg">{customIcon}</div>
+        ) : icon ? (
           <span className="text-2xl md:text-3xl drop-shadow-lg">{icon}</span>
-        )}
+        ) : null}
         <span 
           className="font-bold text-white group-hover:text-yellow-50 transition-colors duration-300"
           style={{

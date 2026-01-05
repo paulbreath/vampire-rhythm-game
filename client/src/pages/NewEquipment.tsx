@@ -4,6 +4,7 @@ import { GlassButton } from "@/components/ui/glass-button";
 import { newEquipmentManager } from "@/lib/newEquipmentManager";
 import { WEAPONS, ARMORS, RARITY_CONFIG, getWeaponById, getArmorById } from "@/data/newEquipmentData";
 import type { Weapon, Armor } from "@/types/equipment";
+import { getWeaponIconStyle, getArmorIconStyle } from "@/lib/pixelIcons";
 
 export default function NewEquipment() {
   const [, setLocation] = useLocation();
@@ -253,8 +254,12 @@ export default function NewEquipment() {
                 }}
               >
                 {/* 装备图标 */}
-                <div className="text-6xl mb-2 text-center">
-                  {isUnlocked ? weapon.icon : '🔒'}
+                <div className="flex justify-center items-center mb-2" style={{ height: '64px' }}>
+                  {isUnlocked ? (
+                    <div style={getWeaponIconStyle(weapon.id)} />
+                  ) : (
+                    <div className="text-4xl">🔒</div>
+                  )}
                 </div>
 
                 {/* 装备名称 */}
@@ -313,8 +318,12 @@ export default function NewEquipment() {
                 }}
               >
                 {/* 装备图标 */}
-                <div className="text-6xl mb-2 text-center">
-                  {isUnlocked ? armor.icon : '🔒'}
+                <div className="flex justify-center items-center mb-2" style={{ height: '64px' }}>
+                  {isUnlocked ? (
+                    <div style={getArmorIconStyle(armor.id)} />
+                  ) : (
+                    <div className="text-4xl">🔒</div>
+                  )}
                 </div>
 
                 {/* 装备名称 */}

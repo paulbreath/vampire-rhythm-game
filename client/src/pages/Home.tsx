@@ -1,8 +1,9 @@
-import { useLocation } from "wouter";
+import { useLocation } from 'wouter';
 import { newEquipmentManager } from '@/lib/newEquipmentManager';
 import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import { GlassButton } from '@/components/ui/glass-button';
+import { getUIIconStyle } from '@/lib/pixelIcons';
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -87,7 +88,7 @@ export default function Home() {
           <GlassButton
             onClick={() => setLocation("/game")}
             size="lg"
-            icon="▶"
+            customIcon={<div style={getUIIconStyle('play')} />}
           >
             START GAME
           </GlassButton>
@@ -96,7 +97,7 @@ export default function Home() {
           <GlassButton
             onClick={() => setLocation("/map")}
             size="md"
-            icon="🏰"
+            customIcon={<div style={getUIIconStyle('castle')} />}
           >
             CASTLE MAP
           </GlassButton>
@@ -105,7 +106,7 @@ export default function Home() {
           <GlassButton
             onClick={() => setLocation("/equipment")}
             size="md"
-            icon="⚔️"
+            customIcon={<div style={getUIIconStyle('swords')} />}
           >
             EQUIPMENT
           </GlassButton>
@@ -114,7 +115,7 @@ export default function Home() {
           <GlassButton
             onClick={() => setLocation("/leaderboard")}
             size="md"
-            icon="🏆"
+            customIcon={<div style={getUIIconStyle('trophy')} />}
           >
             LEADERBOARD
           </GlassButton>
@@ -124,7 +125,7 @@ export default function Home() {
             onClick={handleUnlockAll}
             size="sm"
             variant="danger"
-            icon="🔓"
+            customIcon={<div style={getUIIconStyle('unlock')} />}
             className="mt-4"
           >
             UNLOCK ALL (TEST)
