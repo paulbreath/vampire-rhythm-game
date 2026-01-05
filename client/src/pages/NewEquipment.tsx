@@ -245,7 +245,7 @@ export default function NewEquipment() {
                 onClick={() => isUnlocked && handleEquipWeapon(weapon.id)}
                 disabled={!isUnlocked}
                 className={`
-                  relative p-4 rounded-lg border-2 transition-all
+                  group relative p-4 rounded-lg border-2 transition-all
                   ${isEquipped 
                     ? 'bg-yellow-900/50 border-yellow-500 scale-105' 
                     : isUnlocked 
@@ -260,7 +260,10 @@ export default function NewEquipment() {
                 {/* 装备图标 */}
                 <div className="flex justify-center items-center mb-2 overflow-hidden" style={{ height: '64px' }}>
                   {isUnlocked ? (
-                    <div style={getWeaponIconStyle(weapon.id)} />
+                    <div 
+                      className="transition-transform duration-300 group-hover:scale-125"
+                      style={getWeaponIconStyle(weapon.id)} 
+                    />
                   ) : (
                     <div className="text-4xl">🔒</div>
                   )}
@@ -309,7 +312,7 @@ export default function NewEquipment() {
                 onClick={() => isUnlocked && handleEquipArmor(armor.id)}
                 disabled={!isUnlocked}
                 className={`
-                  relative p-4 rounded-lg border-2 transition-all
+                  group relative p-4 rounded-lg border-2 transition-all
                   ${isEquipped 
                     ? 'bg-yellow-900/50 border-yellow-500 scale-105' 
                     : isUnlocked 
@@ -324,7 +327,10 @@ export default function NewEquipment() {
                 {/* 装备图标 */}
                 <div className="flex justify-center items-center mb-2 overflow-hidden" style={{ height: '64px' }}>
                   {isUnlocked ? (
-                    <div style={getArmorIconStyle(armor.id)} />
+                    <div 
+                      className="transition-transform duration-300 group-hover:scale-125"
+                      style={getArmorIconStyle(armor.id)} 
+                    />
                   ) : (
                     <div className="text-4xl">🔒</div>
                   )}
