@@ -92,7 +92,7 @@ class ProgressManager {
           insane: { completed: false, highScore: 0 },
         },
       })),
-      unlockedDifficulties: ['normal'], // 默认只解锁Normal
+      unlockedDifficulties: ['normal', 'hard', 'insane'], // 测试模式：解锁所有难度
       currentStage: 0,
       currentDifficulty: 'normal',
     };
@@ -179,22 +179,7 @@ class ProgressManager {
 
   // 检查关卡是否解锁
   isStageUnlocked(progress: PlayerProgress, stageIndex: number, difficulty: DifficultyLevel): boolean {
-    // 测试模式：所有Normal难度关卡默认解锁
-    if (difficulty === 'normal') {
-      return true;
-    }
-
-    // 检查难度是否解锁
-    if (!progress.unlockedDifficulties.includes(difficulty)) {
-      return false;
-    }
-
-    // Hard和Insane难度仍需要完成前一关
-    if (stageIndex > 0) {
-      const prevStage = progress.stages[stageIndex - 1];
-      return prevStage.progress[difficulty].completed;
-    }
-
+    // 测试模式：解锁所有关卡和难度
     return true;
   }
 
