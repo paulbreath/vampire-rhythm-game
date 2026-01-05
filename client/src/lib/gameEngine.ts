@@ -711,10 +711,10 @@ export class GameEngine {
       enemy.maxHealth = 10;
       enemy.guardBombs = [];
       
-      // 生成2个护卫炸弹
+      // 生成1个护卫炸弹
       const guardRadius = 100; // 环绕半径
-      for (let i = 0; i < 2; i++) {
-        const guardAngle = (Math.PI * 2 / 2) * i; // 均匀分布在圆周上
+      for (let i = 0; i < 1; i++) {
+        const guardAngle = (Math.PI * 2 / 1) * i; // 均匀分布在圆周上
         const guardX = x + Math.cos(guardAngle) * guardRadius;
         const guardY = y + Math.sin(guardAngle) * guardRadius;
         
