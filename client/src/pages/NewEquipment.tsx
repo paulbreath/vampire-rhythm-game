@@ -258,7 +258,7 @@ export default function NewEquipment() {
                 }}
               >
                 {/* 装备图标 */}
-                <div className="flex justify-center items-center mb-2" style={{ height: '64px' }}>
+                <div className="flex justify-center items-center mb-2 overflow-hidden" style={{ height: '64px' }}>
                   {isUnlocked ? (
                     <div style={getWeaponIconStyle(weapon.id)} />
                   ) : (
@@ -322,7 +322,7 @@ export default function NewEquipment() {
                 }}
               >
                 {/* 装备图标 */}
-                <div className="flex justify-center items-center mb-2" style={{ height: '64px' }}>
+                <div className="flex justify-center items-center mb-2 overflow-hidden" style={{ height: '64px' }}>
                   {isUnlocked ? (
                     <div style={getArmorIconStyle(armor.id)} />
                   ) : (

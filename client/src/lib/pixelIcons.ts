@@ -60,7 +60,7 @@ export function getWeaponIconStyle(weaponId: string): React.CSSProperties {
   const spriteWidth = 2752;
   const spriteHeight = 1536;
   const iconCount = 6;
-  const displayWidth = 48;
+  const displayWidth = 24; // 合理的显示宽度
   // 根据宽高比计算显示高度
   const displayHeight = Math.round(displayWidth * spriteHeight / (spriteWidth / iconCount));
   
@@ -84,7 +84,7 @@ export function getArmorIconStyle(armorId: string): React.CSSProperties {
   const spriteWidth = 2752;
   const spriteHeight = 1536;
   const iconCount = 5;
-  const displayWidth = 48;
+  const displayWidth = 24; // 合理的显示宽度
   const displayHeight = Math.round(displayWidth * spriteHeight / (spriteWidth / iconCount));
   
   return {
