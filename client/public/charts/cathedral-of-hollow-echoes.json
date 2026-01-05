@@ -1,19 +1,25 @@
 {
-  "bpm": 120,
+  "metadata": {
+    "title": "Cathedral of Hollow Echoes",
+    "artist": "AI Composer",
+    "bpm": 120,
+    "duration": 190,
+    "difficulty": "normal"
+  },
   "notes": [
-    {"time": 1.0, "lane": 2}, {"time": 2.0, "lane": 1}, {"time": 3.0, "lane": 3},
-    {"time": 4.0, "lane": 2}, {"time": 5.0, "lane": 1}, {"time": 6.0, "lane": 3},
-    {"time": 7.0, "lane": 2}, {"time": 8.0, "lane": 1}, {"time": 9.0, "lane": 3},
-    {"time": 10.0, "lane": 2}, {"time": 11.0, "lane": 1}, {"time": 12.0, "lane": 3},
-    {"time": 13.0, "lane": 2}, {"time": 14.0, "lane": 1}, {"time": 15.0, "lane": 3},
-    {"time": 16.0, "lane": 2}, {"time": 17.0, "lane": 1}, {"time": 18.0, "lane": 3},
-    {"time": 19.0, "lane": 2}, {"time": 20.0, "lane": 1}, {"time": 21.0, "lane": 3},
-    {"time": 22.0, "lane": 2}, {"time": 23.0, "lane": 1}, {"time": 24.0, "lane": 3},
-    {"time": 25.0, "lane": 2}, {"time": 26.0, "lane": 1}, {"time": 27.0, "lane": 3},
-    {"time": 28.0, "lane": 2}, {"time": 29.0, "lane": 1}, {"time": 30.0, "lane": 3},
-    {"time": 31.0, "lane": 2}, {"time": 32.0, "lane": 1}, {"time": 33.0, "lane": 3},
-    {"time": 34.0, "lane": 2}, {"time": 35.0, "lane": 1}, {"time": 36.0, "lane": 3},
-    {"time": 37.0, "lane": 2}, {"time": 38.0, "lane": 1}, {"time": 39.0, "lane": 3},
-    {"time": 40.0, "lane": 2}
+    {"time": 1.0, "type": "skeleton"}, {"time": 2.0, "type": "ghost"}, {"time": 3.0, "type": "bat_purple"},
+    {"time": 4.0, "type": "skeleton"}, {"time": 5.0, "type": "ghost"}, {"time": 6.0, "type": "bat_purple"},
+    {"time": 7.0, "type": "skeleton"}, {"time": 8.0, "type": "ghost"}, {"time": 9.0, "type": "bat_purple"},
+    {"time": 10.0, "type": "skeleton"}, {"time": 11.0, "type": "ghost"}, {"time": 12.0, "type": "bat_purple"},
+    {"time": 13.0, "type": "skeleton"}, {"time": 14.0, "type": "ghost"}, {"time": 15.0, "type": "bat_purple"},
+    {"time": 16.0, "type": "skeleton"}, {"time": 17.0, "type": "ghost"}, {"time": 18.0, "type": "bat_purple"},
+    {"time": 19.0, "type": "skeleton"}, {"time": 20.0, "type": "ghost"}, {"time": 21.0, "type": "bat_purple"},
+    {"time": 22.0, "type": "skeleton"}, {"time": 23.0, "type": "ghost"}, {"time": 24.0, "type": "bat_purple"},
+    {"time": 25.0, "type": "skeleton"}, {"time": 26.0, "type": "ghost"}, {"time": 27.0, "type": "bat_purple"},
+    {"time": 28.0, "type": "skeleton"}, {"time": 29.0, "type": "ghost"}, {"time": 30.0, "type": "bat_purple"},
+    {"time": 31.0, "type": "skeleton"}, {"time": 32.0, "type": "ghost"}, {"time": 33.0, "type": "bat_purple"},
+    {"time": 34.0, "type": "skeleton"}, {"time": 35.0, "type": "ghost"}, {"time": 36.0, "type": "bat_purple"},
+    {"time": 37.0, "type": "skeleton"}, {"time": 38.0, "type": "ghost"}, {"time": 39.0, "type": "bat_purple"},
+    {"time": 40.0, "type": "skeleton"}
   ]
 }

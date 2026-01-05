@@ -75,11 +75,12 @@ export default function Game() {
     const soundEffects = new SoundEffectsManager();
     soundEffectsRef.current = soundEffects;
 
-    // Initialize game engine with difficulty multipliers
+    // Initialize game engine with difficulty multipliers and stage ID
     const engine = new GameEngine(
       canvasRef.current,
       difficultyConfig.speedMultiplier,
-      difficultyConfig.densityMultiplier
+      difficultyConfig.densityMultiplier,
+      stageParam // 传递地图ID，用于加载对应的怪物类型
     );
     engine.setSoundEffects(soundEffects);
     

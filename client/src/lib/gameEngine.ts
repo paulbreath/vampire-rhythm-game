@@ -5,6 +5,7 @@ import { experienceManager, type PlayerStats } from './experienceManager';
 import { newEquipmentManager } from './newEquipmentManager';
 import { vampireHeroAnimations, vampireHeroSprites } from '../data/vampireHeroAnimations';
 import type { WeaponConfig } from '../types/equipment';
+import { getEnemiesForStage, type EnemyType } from '../data/enemyTypes';
 
 export interface Enemy {
   id: number;
@@ -143,11 +144,16 @@ export class GameEngine {
   // 难度倍率
   private speedMultiplier: number = 1.0;
   private densityMultiplier: number = 1.0;
+  private stageId: string = 'abandoned-church'; // 当前地图ID
+  private allowedEnemyTypes: EnemyType[] = []; // 当前地图允许的怪物类型
   private difficulty: 'easy' | 'normal' | 'hard' = 'normal'; // 难度等级
 
-  constructor(canvas: HTMLCanvasElement, speedMultiplier: number = 1.0, densityMultiplier: number = 1.0) {
+  constructor(canvas: HTMLCanvasElement, speedMultiplier: number = 1.0, densityMultiplier: number = 1.0, stageId: string = 'abandoned-church') {
     this.speedMultiplier = speedMultiplier;
     this.densityMultiplier = densityMultiplier;
+    this.stageId = stageId;
+    this.allowedEnemyTypes = getEnemiesForStage(stageId);
+    console.log(`Stage ${stageId} enemy types:`, this.allowedEnemyTypes);
     
     // 根据speedMultiplier推断难度
     if (speedMultiplier <= 1.0) {
@@ -477,7 +483,8 @@ export class GameEngine {
           }
           
           this.upcomingNotes.shift();
-          this.spawnEnemy(note.type);
+          // 不使用谱面中的type，而是从当前地图允许的怪物类型中随机选择
+          this.spawnEnemy(); // 不传type参数，让它从 allowedEnemyTypes 中选择
           spawnedCount++;
         }
         
@@ -703,19 +710,17 @@ export class GameEngine {
   }
 
   private spawnEnemy(type?: Enemy['type']): void {
-    // 如果没有指定类型，随机选择
+    // 如果没有指定类型，从当前地图允许的怪物类型中随机选择
     if (!type) {
-      const types: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb'];
-      const weights = [25, 25, 15, 15, 15, 5]; // 权重
-      const totalWeight = weights.reduce((a, b) => a + b, 0);
-      let random = Math.random() * totalWeight;
-      
-      for (let i = 0; i < types.length; i++) {
-        random -= weights[i];
-        if (random <= 0) {
-          type = types[i];
-          break;
-        }
+      if (this.allowedEnemyTypes.length > 0) {
+        // 从允许的类型中随机选择
+        const randomIndex = Math.floor(Math.random() * this.allowedEnemyTypes.length);
+        type = this.allowedEnemyTypes[randomIndex] as Enemy['type'];
+      } else {
+        // 如果没有配置，使用默认类型
+        const types: Enemy['type'][] = ['bat_blue', 'bat_purple', 'skeleton'];
+        const randomIndex = Math.floor(Math.random() * types.length);
+        type = types[randomIndex];
       }
     }
     
