@@ -79,7 +79,7 @@ export default function AnimationTest() {
                 animations[currentAnimation].update(deltaTime);
                 
                 // 居中渲染
-                const scale = 0.3; // 缩放到合适大小
+                const scale = 0.5; // 缩放到合适大小,让主角更清晰可见
                 const spriteWidth = 688 * scale;
                 const spriteHeight = 768 * scale;
                 const x = (canvas.width - spriteWidth) / 2;

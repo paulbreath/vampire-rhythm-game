@@ -212,8 +212,8 @@ export class GameEngine {
       targetY: initialY,
       rotation: 0,  // 初始朝向右
       facingRight: true,  // 初始朝向右
-      width: 120, // 2x larger than normal bat
-      height: 180, // 2x larger than normal bat
+      width: 240, // 4x larger than normal bat (diameter 40), makes hero prominent
+      height: 360, // 4x larger than normal bat, makes hero stand out
       idleAnimation: oldIdleAnimation,
       attackAnimation: oldAttackAnimation,
       attackDashX: 0,

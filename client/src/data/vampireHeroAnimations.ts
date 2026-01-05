@@ -21,11 +21,11 @@ function gridToFrame(row: number, col: number): number {
  * 精灵图路径配置
  */
 export const vampireHeroSprites = {
-  idle: '/images/alucard-idle-final.png',
-  walk: '/images/alucard-walk-final.png',
-  attack: '/images/alucard-attack-final.png',
-  hurt: '/images/alucard-hurt-final.png',
-  death: '/images/alucard-death-final.png',
+  idle: '/images/alucard-idle-transparent.png',
+  walk: '/images/alucard-walk-transparent.png',
+  attack: '/images/alucard-attack-transparent.png',
+  hurt: '/images/alucard-hurt-v2.png',
+  death: '/images/alucard-death-transparent.png',
 };
 
 /**
@@ -102,11 +102,11 @@ export const vampireHeroAnimations: Record<string, AnimationState> = {
       frameWidth: 688,
       frameHeight: 768,
       frameSequence: [
-        gridToFrame(0, 0),
-        gridToFrame(0, 1),
-        gridToFrame(0, 2),
-        gridToFrame(0, 3),
-        gridToFrame(1, 0),
+        gridToFrame(0, 0), // 第1帧
+        gridToFrame(0, 1), // 第2帧
+        gridToFrame(0, 2), // 第3帧
+        gridToFrame(0, 3), // 第4帧
+        // 移除第5帧 gridToFrame(1, 0) - 有黄色光晕
       ],
       frameRate: 10, // 10帧/秒
       loop: false, // 受伤动画不循环
