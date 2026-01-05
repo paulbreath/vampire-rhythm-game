@@ -593,8 +593,11 @@ export class GameEngine {
       }
       
       // 边界限制，确保角色不会移出画布
+      // 注意：主角height=360，所以上下各留180像素。但为了让主角能移动到画面底部，我们放宽下边界限制
+      const minY = this.player.height / 2; // 上边界：180
+      const maxY = this.canvas.height - 50; // 下边界：720-50=670，留50像素避免完全移出画面
       this.player.x = Math.max(this.player.width / 2, Math.min(this.canvas.width - this.player.width / 2, this.player.x));
-      this.player.y = Math.max(this.player.height / 2, Math.min(this.canvas.height - this.player.height / 2, this.player.y));
+      this.player.y = Math.max(minY, Math.min(maxY, this.player.y));
     }
     
     // 更新玩家待机动画（旧系统）
