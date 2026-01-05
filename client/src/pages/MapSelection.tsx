@@ -173,6 +173,56 @@ export default function MapSelection() {
           />
         </div>
 
+        {/* 连接线层 - 在节点下方 */}
+        <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none">
+          {Object.values(MAP_NODES).map((node) => {
+            const isNodeUnlocked = isMapNodeUnlocked(node.id, completedStages);
+            const isNodeCompleted = completedStages.includes(node.id);
+            
+            return node.connections.map((connectionId) => {
+              const targetNode = MAP_NODES[connectionId];
+              if (!targetNode) return null;
+              
+              // 只绘制从当前节点到其解锁条件节点的连接线
+              const isValidConnection = node.unlockConditions.includes(connectionId);
+              if (!isValidConnection) return null;
+              
+              const isTargetUnlocked = isMapNodeUnlocked(connectionId, completedStages);
+              const isTargetCompleted = completedStages.includes(connectionId);
+              
+              // 计算线条颜色和样式
+              let strokeColor = '#4b5563'; // 灰色（未解锁）
+              let strokeWidth = 2;
+              let strokeDasharray = '5,5';
+              
+              if (isTargetCompleted && isNodeCompleted) {
+                strokeColor = '#22c55e'; // 绿色（两端都完成）
+                strokeWidth = 3;
+                strokeDasharray = 'none';
+              } else if (isTargetCompleted || isNodeUnlocked) {
+                strokeColor = '#eab308'; // 黄色（至少一端解锁）
+                strokeWidth = 2.5;
+                strokeDasharray = 'none';
+              }
+              
+              return (
+                <line
+                  key={`${node.id}-${connectionId}`}
+                  x1={`${targetNode.position.x}%`}
+                  y1={`${targetNode.position.y}%`}
+                  x2={`${node.position.x}%`}
+                  y2={`${node.position.y}%`}
+                  stroke={strokeColor}
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={strokeDasharray}
+                  opacity={0.6}
+                  className="transition-all duration-300"
+                />
+              );
+            });
+          })}
+        </svg>
+
         {/* 地图节点覆盖层 */}
         <div className="absolute inset-0 p-4">
           {Object.values(MAP_NODES).map((node) => {
