@@ -48,7 +48,7 @@ export function GlassButton({
     <button
       onClick={onClick}
       className={`group relative overflow-hidden ${sizeClasses[size]} ${className}`}
-      style={{ fontFamily: 'serif' }}
+      style={{ fontFamily: '"Press Start 2P", cursive' }}
     >
       {/* 血红玻璃背景 */}
       <div 

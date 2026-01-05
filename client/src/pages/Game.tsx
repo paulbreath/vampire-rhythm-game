@@ -398,7 +398,7 @@ export default function Game() {
         {isGameOver && !showDropReward && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/90">
             <div className="text-center space-y-6 p-8 bg-card border-4 border-border rounded-lg">
-              <h2 className="text-4xl glow-red" style={{ fontFamily: 'Creepster, cursive' }}>
+              <h2 className="text-4xl glow-red" style={{ fontFamily: '"Press Start 2P", cursive' }}>
                 GAME OVER
               </h2>
               <div className="space-y-2">
@@ -427,7 +427,7 @@ export default function Game() {
         {showDropReward && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/95">
             <div className="text-center space-y-6 p-8 bg-card border-4 border-border rounded-lg max-w-2xl">
-              <h2 className="text-4xl glow-gold" style={{ fontFamily: 'Creepster, cursive' }}>
+              <h2 className="text-4xl glow-gold" style={{ fontFamily: '"Press Start 2P", cursive' }}>
                 STAGE CLEAR!
               </h2>
               
