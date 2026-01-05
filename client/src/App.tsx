@@ -6,7 +6,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Game from "./pages/Game";
-import Stages from "./pages/Stages";
 import NewEquipment from "./pages/NewEquipment";
 import MapSelection from "./pages/MapSelection";
 import Leaderboard from "./pages/Leaderboard";
@@ -17,7 +16,6 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/game"} component={Game} />
-      <Route path={"/stages"} component={Stages} />
       <Route path={"/map"} component={MapSelection} />
       <Route path={"/equipment"} component={NewEquipment} />
       <Route path={"/leaderboard"} component={Leaderboard} />

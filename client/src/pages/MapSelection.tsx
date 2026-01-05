@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
-import { progressManager } from '@/lib/progressManager';
+import { progressManager, DIFFICULTY_CONFIGS, type DifficultyLevel } from '@/lib/progressManager';
 import { MAP_NODES, isMapNodeUnlocked, getMapProgress, type MapNode } from '@/data/mapNodes';
 import { Button } from '@/components/ui/button';
 import { Lock, CheckCircle, Crown, BookOpen, TreePine, Church, Clock, Skull, Beaker } from 'lucide-react';
@@ -10,6 +10,7 @@ export default function MapSelection() {
   const [progress, setProgress] = useState(progressManager.loadProgress());
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>('normal');
 
   useEffect(() => {
     setProgress(progressManager.loadProgress());
@@ -49,7 +50,7 @@ export default function MapSelection() {
   // 开始游戏
   const handleStartGame = () => {
     if (selectedNode) {
-      setLocation(`/game?stage=${selectedNode.id}&difficulty=normal`);
+      setLocation(`/game?stage=${selectedNode.id}&difficulty=${selectedDifficulty}`);
     }
   };
 
@@ -206,8 +207,42 @@ export default function MapSelection() {
                 </div>
               </div>
 
-              {/* 右侧：操作按钮 */}
+              {/* 右侧：难度选择和操作按钮 */}
               <div className="flex flex-col gap-3 justify-center">
+                {/* 难度选择器 */}
+                <div className="mb-2">
+                  <p className="text-purple-400 text-sm mb-2 text-center">选择难度:</p>
+                  <div className="flex gap-2">
+                    {(['normal', 'hard', 'insane'] as DifficultyLevel[]).map((difficulty) => {
+                      const config = DIFFICULTY_CONFIGS[difficulty];
+                      const isUnlocked = progress.unlockedDifficulties.includes(difficulty);
+                      const isSelected = selectedDifficulty === difficulty;
+
+                      return (
+                        <button
+                          key={difficulty}
+                          onClick={() => isUnlocked && setSelectedDifficulty(difficulty)}
+                          disabled={!isUnlocked}
+                          className={`
+                            flex-1 px-3 py-2 text-xs rounded border-2 transition-all
+                            ${isSelected 
+                              ? 'bg-purple-600 border-purple-400 text-white scale-105' 
+                              : isUnlocked
+                                ? 'bg-purple-900/50 border-purple-500/50 text-purple-300 hover:border-purple-400'
+                                : 'bg-gray-800/50 border-gray-600 text-gray-500 cursor-not-allowed opacity-50'
+                            }
+                          `}
+                        >
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="font-bold">{config.name.toUpperCase()}</span>
+                            {!isUnlocked && <span>🔒</span>}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                
                 <Button
                   onClick={handleStartGame}
                   size="lg"

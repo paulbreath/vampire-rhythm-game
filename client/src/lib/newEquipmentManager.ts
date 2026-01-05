@@ -176,6 +176,18 @@ class NewEquipmentManager {
     return 3 + armor.hpBonus;
   }
 
+  // 解锁所有装备（测试用）
+  public unlockAllEquipment(): void {
+    WEAPONS.forEach(weapon => {
+      this.unlockedWeapons.add(weapon.id);
+    });
+    ARMORS.forEach(armor => {
+      this.unlockedArmors.add(armor.id);
+    });
+    this.saveToStorage();
+    console.log('All equipment unlocked!');
+  }
+
   // 保存到LocalStorage
   private saveToStorage(): void {
     const data = {
