@@ -3,8 +3,8 @@ import { ChartData } from './chartLoader';
 import { SpriteAnimation, AnimationState, createPlayerAnimations } from './spriteAnimation';
 import { experienceManager, type PlayerStats } from './experienceManager';
 import { newEquipmentManager } from './newEquipmentManager';
-import { WeaponConfig } from '../types/equipment';
-import { vampireHeroAnimations } from '../data/vampireHeroAnimations';
+import { vampireHeroAnimations, vampireHeroSprites } from '../data/vampireHeroAnimations';
+import type { WeaponConfig } from '../types/equipment';
 
 export interface Enemy {
   id: number;
@@ -253,21 +253,21 @@ export class GameEngine {
       checkAllLoaded();
     };
     idleImg.onerror = () => console.error('Failed to load IDLE sprite');
-    idleImg.src = '/images/vampire-hero-idle-v3.png';
+    idleImg.src = vampireHeroSprites.idle; // 使用配置文件中的透明图片
     
     attackImg.onload = () => {
       console.log('Player ATTACK sprite loaded');
       checkAllLoaded();
     };
     attackImg.onerror = () => console.error('Failed to load ATTACK sprite');
-    attackImg.src = '/images/vampire-hero-attack-v2.png';
+    attackImg.src = vampireHeroSprites.attack; // 使用配置文件中的透明图片
     
     hurtImg.onload = () => {
       console.log('Player HURT sprite loaded');
       checkAllLoaded();
     };
     hurtImg.onerror = () => console.error('Failed to load HURT sprite');
-    hurtImg.src = '/images/vampire-hero-hurt-v2.png';
+    hurtImg.src = vampireHeroSprites.hurt; // 使用配置文件中的透明图片
     
     // 加载敌人精灵
     const enemyTypes: Enemy['type'][] = ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'vampire', 'bomb', 'skeleton', 'ghost', 'werewolf', 'medusa_head', 'crow'];
