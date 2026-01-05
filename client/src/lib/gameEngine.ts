@@ -474,7 +474,7 @@ export class GameEngine {
         const boss = this.enemies.find(e => e.id === enemy.guardBossId);
         if (boss) {
           // 更新环绕角度
-          enemy.guardAngle = (enemy.guardAngle || 0) + 0.05; // 每帧旋转0.05弧度
+          enemy.guardAngle = (enemy.guardAngle || 0) + 0.02; // 每帧旋转0.02弧度（降低速度）
           
           // 计算新位置（相对于BOSS）
           const radius = enemy.guardRadius || 100;
@@ -909,9 +909,11 @@ export class GameEngine {
             this.createParticles(enemy.x, enemy.y, '#ffd700', 30); // 金色爆炸
             this.triggerScreenShake(20);
             
-            // 移除BOSS的护卫炸弹
-            if (enemy.guardBombs) {
-              this.enemies = this.enemies.filter(e => !enemy.guardBombs!.includes(e.id));
+            // 立即移除BOSS的所有护卫炸弹
+            if (enemy.guardBombs && enemy.guardBombs.length > 0) {
+              const guardBombIds = new Set(enemy.guardBombs);
+              this.enemies = this.enemies.filter(e => !guardBombIds.has(e.id));
+              console.log(`Removed ${enemy.guardBombs.length} guard bombs for BOSS ${enemy.id}`);
             }
             
             return false; // 移除BOSS
@@ -1122,11 +1124,20 @@ export class GameEngine {
   }
 
   private loseLife(): void {
+    // 无敌帧机制：受伤后500ms内不会再次受伤
+    const now = Date.now();
+    if (now - this.lastLoseLifeTime < 500) {
+      return; // 在无敌帧内，忽略伤害
+    }
+    
+    this.lastLoseLifeTime = now;
     this.lives--;
     this.combo = 0;
     this.soundEffects?.playMiss();
     this.onLivesChange?.(this.lives);
     this.onComboChange?.(this.combo);
+    
+    console.log(`Lost life! Remaining lives: ${this.lives}`);
     
     if (this.lives <= 0) {
       this.gameOver();
