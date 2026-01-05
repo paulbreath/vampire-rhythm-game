@@ -189,6 +189,21 @@ class ProgressManager {
     this.saveProgress(progress);
     return progress;
   }
+
+  // 解锁所有关卡和难度（测试用）
+  unlockAll(): PlayerProgress {
+    const progress = this.loadProgress();
+    // 解锁所有难度
+    progress.unlockedDifficulties = ['normal', 'hard', 'insane'];
+    // 标记所有关卡为已完成
+    progress.stages.forEach(stage => {
+      stage.progress.normal.completed = true;
+      stage.progress.hard.completed = true;
+      stage.progress.insane.completed = true;
+    });
+    this.saveProgress(progress);
+    return progress;
+  }
 }
 
 export const progressManager = new ProgressManager();

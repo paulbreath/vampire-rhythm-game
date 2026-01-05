@@ -96,10 +96,14 @@ export default function MapSelection() {
     setLocation('/');
   };
   
-  // 解锁所有装备（测试功能）
+  // 解锁所有装备和地图（测试功能）
   const handleUnlockAll = () => {
+    // 解锁所有装备
     newEquipmentManager.unlockAllEquipment();
-    alert('All equipment unlocked!');
+    // 解锁所有地图关卡
+    const newProgress = progressManager.unlockAll();
+    setProgress(newProgress);
+    alert('All equipment and stages unlocked!');
   };
 
   return (
