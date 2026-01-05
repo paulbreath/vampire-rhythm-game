@@ -56,17 +56,21 @@ export const UI_ICON_POSITIONS = {
 export function getWeaponIconStyle(weaponId: string): React.CSSProperties {
   const index = WEAPON_ICON_POSITIONS[weaponId] ?? 0;
   // 实际图片尺寸: 2752x1536px, 6个图标横向排列
-  // 每个图标大约: 2752/6 ≈ 459px
-  const spriteIconWidth = 459;
-  const displaySize = 48; // 显示尺寸
+  // 每个图标: 459x1536px (宽高比 1:3.3)
+  const spriteWidth = 2752;
+  const spriteHeight = 1536;
+  const iconCount = 6;
+  const displayWidth = 48;
+  // 根据宽高比计算显示高度
+  const displayHeight = Math.round(displayWidth * spriteHeight / (spriteWidth / iconCount));
   
   return {
     backgroundImage: `url(${getIconPath('weapons')})`,
-    backgroundPosition: `-${index * spriteIconWidth * displaySize / spriteIconWidth}px 0`,
-    backgroundSize: `${6 * displaySize}px auto`,
+    backgroundPosition: `-${index * displayWidth}px 0`,
+    backgroundSize: `${iconCount * displayWidth}px auto`,
     backgroundRepeat: 'no-repeat',
-    width: `${displaySize}px`,
-    height: `${displaySize}px`,
+    width: `${displayWidth}px`,
+    height: `${displayHeight}px`,
     imageRendering: 'pixelated' as const,
     display: 'inline-block'
   };
@@ -76,17 +80,20 @@ export function getWeaponIconStyle(weaponId: string): React.CSSProperties {
 export function getArmorIconStyle(armorId: string): React.CSSProperties {
   const index = ARMOR_ICON_POSITIONS[armorId] ?? 0;
   // 实际图片尺寸: 2752x1536px, 5个图标横向排列
-  // 每个图标大约: 2752/5 ≈ 550px
-  const spriteIconWidth = 550;
-  const displaySize = 48;
+  // 每个图标: 550x1536px (宽高比 1:2.8)
+  const spriteWidth = 2752;
+  const spriteHeight = 1536;
+  const iconCount = 5;
+  const displayWidth = 48;
+  const displayHeight = Math.round(displayWidth * spriteHeight / (spriteWidth / iconCount));
   
   return {
     backgroundImage: `url(${getIconPath('armor')})`,
-    backgroundPosition: `-${index * displaySize}px 0`,
-    backgroundSize: `${5 * displaySize}px auto`,
+    backgroundPosition: `-${index * displayWidth}px 0`,
+    backgroundSize: `${iconCount * displayWidth}px auto`,
     backgroundRepeat: 'no-repeat',
-    width: `${displaySize}px`,
-    height: `${displaySize}px`,
+    width: `${displayWidth}px`,
+    height: `${displayHeight}px`,
     imageRendering: 'pixelated' as const,
     display: 'inline-block'
   };
