@@ -111,21 +111,21 @@ export default function AnimationTest() {
           checkAllLoaded();
         };
         idleImg.onerror = () => console.error('Failed to load IDLE sprite');
-        idleImg.src = '/images/alucard-idle-transparent.png';
+        idleImg.src = '/images/hero-idle-transparent.png';
 
         attackImg.onload = () => {
           console.log('ATTACK sprite loaded');
           checkAllLoaded();
         };
         attackImg.onerror = () => console.error('Failed to load ATTACK sprite');
-        attackImg.src = '/images/alucard-attack-transparent.png';
+        attackImg.src = '/images/hero-attack-transparent.png';
 
         hurtImg.onload = () => {
           console.log('HURT sprite loaded');
           checkAllLoaded();
         };
         hurtImg.onerror = () => console.error('Failed to load HURT sprite');
-        hurtImg.src = '/images/alucard-hurt-v2.png';
+        hurtImg.src = '/images/hero-hurt-transparent.png';
       });
     });
   }, [currentAnimation, isPlaying]);

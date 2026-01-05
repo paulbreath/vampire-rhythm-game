@@ -21,11 +21,11 @@ function gridToFrame(row: number, col: number): number {
  * 精灵图路径配置
  */
 export const vampireHeroSprites = {
-  idle: '/images/alucard-idle-transparent.png',
-  walk: '/images/alucard-walk-transparent.png',
-  attack: '/images/alucard-attack-transparent.png',
-  hurt: '/images/alucard-hurt-v2.png',
-  death: '/images/alucard-death-transparent.png',
+  idle: '/images/hero-idle-transparent.png',
+  walk: '/images/hero-walk-transparent.png',
+  attack: '/images/hero-attack-transparent.png',
+  hurt: '/images/hero-hurt-transparent.png',
+  death: '/images/hero-death-transparent.png',
 };
 
 /**

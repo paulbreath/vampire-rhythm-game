@@ -237,14 +237,15 @@ export class GameEngine {
     
     // 加载玩家精灵动画
     const idleImg = new Image();
+    const walkImg = new Image();
     const attackImg = new Image();
     const hurtImg = new Image();
     
     let loadedCount = 0;
     const checkAllLoaded = () => {
       loadedCount++;
-      if (loadedCount === 3) {
-        this.initializePlayerAnimation(idleImg, attackImg, hurtImg);
+      if (loadedCount === 4) {
+        this.initializePlayerAnimation(idleImg, walkImg, attackImg, hurtImg);
       }
     };
     
@@ -254,6 +255,13 @@ export class GameEngine {
     };
     idleImg.onerror = () => console.error('Failed to load IDLE sprite');
     idleImg.src = vampireHeroSprites.idle; // 使用配置文件中的透明图片
+    
+    walkImg.onload = () => {
+      console.log('Player WALK sprite loaded');
+      checkAllLoaded();
+    };
+    walkImg.onerror = () => console.error('Failed to load WALK sprite');
+    walkImg.src = vampireHeroSprites.walk; // 使用配置文件中的透明图片
     
     attackImg.onload = () => {
       console.log('Player ATTACK sprite loaded');
@@ -295,22 +303,24 @@ export class GameEngine {
     }
   }
   
-  private initializePlayerAnimation(idleImg: HTMLImageElement, attackImg: HTMLImageElement, hurtImg: HTMLImageElement): void {
+  private initializePlayerAnimation(idleImg: HTMLImageElement, walkImg: HTMLImageElement, attackImg: HTMLImageElement, hurtImg: HTMLImageElement): void {
     // 使用vampireHeroAnimations配置
     const idleAnimation = new SpriteAnimation(idleImg, vampireHeroAnimations.idle);
+    const walkAnimation = new SpriteAnimation(walkImg, vampireHeroAnimations.walk);
     const attackAnimation = new SpriteAnimation(attackImg, vampireHeroAnimations.attack);
     const hurtAnimation = new SpriteAnimation(hurtImg, vampireHeroAnimations.hurt);
     
     // 存储到player对象
     this.player.spriteAnimation = {
       idle: idleAnimation,
+      walk: walkAnimation,
       attack: attackAnimation,
       hurt: hurtAnimation,
       current: idleAnimation // 默认使用待机动画
     };
     this.player.animationState = 'idle';
     
-    console.log('Player sprite animations initialized (IDLE/ATTACK/HURT)');
+    console.log('Player sprite animations initialized (IDLE/WALK/ATTACK/HURT)');
   }
 
   private resizeCanvas(): void {
