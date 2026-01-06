@@ -346,46 +346,63 @@ export class GameEngine {
   
   private loadSkeletonAnimations(): void {
     const { enemySpriteConfigs } = require('@/data/enemyAnimations');
+    const { SpriteAnimation } = require('@/lib/spriteAnimation');
+    
+    // 加载骨骼兵动画
     const skeletonConfig = enemySpriteConfigs.skeleton;
+    if (skeletonConfig) {
+      const skeletonIdleImg = new Image();
+      skeletonIdleImg.src = skeletonConfig.idle.path;
+      
+      const skeletonAttackImg = new Image();
+      skeletonAttackImg.src = skeletonConfig.attack.path;
+      
+      let skeletonLoadedCount = 0;
+      const checkSkeletonLoaded = () => {
+        skeletonLoadedCount++;
+        if (skeletonLoadedCount === 2) {
+          const idleAnim = new SpriteAnimation(skeletonIdleImg, skeletonConfig.idle);
+          const attackAnim = new SpriteAnimation(skeletonAttackImg, skeletonConfig.attack);
+          
+          if (!this.enemyAnimations) {
+            this.enemyAnimations = new Map();
+          }
+          this.enemyAnimations.set('skeleton', {
+            idle: idleAnim,
+            attack: attackAnim,
+          });
+          
+          console.log('Skeleton animations loaded (idle + attack)');
+        }
+      };
+      
+      skeletonIdleImg.onload = checkSkeletonLoaded;
+      skeletonIdleImg.onerror = () => console.error('Failed to load skeleton idle animation');
+      
+      skeletonAttackImg.onload = checkSkeletonLoaded;
+      skeletonAttackImg.onerror = () => console.error('Failed to load skeleton attack animation');
+    }
     
-    if (!skeletonConfig) return;
-    
-    // 加载idle动画
-    const idleImg = new Image();
-    idleImg.src = skeletonConfig.idle.path;
-    
-    // 加载attack动画
-    const attackImg = new Image();
-    attackImg.src = skeletonConfig.attack.path;
-    
-    let loadedCount = 0;
-    const checkLoaded = () => {
-      loadedCount++;
-      if (loadedCount === 2) {
-        // 两个图片都加载完成，创建SpriteAnimation实例
-        const { SpriteAnimation } = require('@/lib/spriteAnimation');
+    // 加载幽灵动画
+    const ghostConfig = enemySpriteConfigs.ghost;
+    if (ghostConfig) {
+      const ghostIdleImg = new Image();
+      ghostIdleImg.src = ghostConfig.idle.path;
+      
+      ghostIdleImg.onload = () => {
+        const idleAnim = new SpriteAnimation(ghostIdleImg, ghostConfig.idle);
         
-        const idleAnim = new SpriteAnimation(idleImg, skeletonConfig.idle);
-        const attackAnim = new SpriteAnimation(attackImg, skeletonConfig.attack);
-        
-        // 存储到类属性
         if (!this.enemyAnimations) {
           this.enemyAnimations = new Map();
         }
-        this.enemyAnimations.set('skeleton', {
+        this.enemyAnimations.set('ghost', {
           idle: idleAnim,
-          attack: attackAnim,
         });
         
-        console.log('Skeleton animations loaded (idle + attack)');
-      }
-    };
-    
-    idleImg.onload = checkLoaded;
-    idleImg.onerror = () => console.error('Failed to load skeleton idle animation');
-    
-    attackImg.onload = checkLoaded;
-    attackImg.onerror = () => console.error('Failed to load skeleton attack animation');
+        console.log('Ghost animations loaded (idle)');
+      };
+      ghostIdleImg.onerror = () => console.error('Failed to load ghost idle animation');
+    }
   }
   
   private initializePlayerAnimation(idleImg: HTMLImageElement, walkImg: HTMLImageElement, attackImg: HTMLImageElement, hurtImg: HTMLImageElement): void {
@@ -672,6 +689,14 @@ export class GameEngine {
       // 更新受击动画
       if (enemy.hitAnimation !== undefined && enemy.hitAnimation > 0) {
         enemy.hitAnimation--;
+      }
+      
+      // 幽灵动画更新
+      if (enemy.type === 'ghost' && enemy.spriteAnimation && enemy.animationState === 'idle') {
+        const idleAnim = enemy.spriteAnimation.idle;
+        if (idleAnim) {
+          idleAnim.update(1/60);
+        }
       }
       
       // 骨骼兵攻击 AI
@@ -988,6 +1013,12 @@ export class GameEngine {
       enemy.isAttacking = false;
       enemy.attackHitFrame = 3; // 在第3帧（剑劈下的一帧）判定伤害
       enemy.hasDealtDamage = false;
+    }
+    
+    // 为幽灵分配动画
+    if (enemyType === 'ghost' && this.enemyAnimations.has('ghost')) {
+      enemy.spriteAnimation = this.enemyAnimations.get('ghost');
+      enemy.animationState = 'idle';
     }
     
     // 如果是BOSS，添加血量和护卫炸弹
@@ -1544,14 +1575,26 @@ export class GameEngine {
         hitScale = 1.0 + (enemy.hitAnimation / 10) * 0.3;
       }
       
-      // 如果有精灵动画（骨骼兵），使用帧动画渲染
+      // 如果有精灵动画（骨骼兵/幽灵），使用帧动画渲某
       if (enemy.spriteAnimation && enemy.animationState) {
         this.ctx.save();
         this.ctx.globalAlpha = hitAlpha;
         
         const frameWidth = 344; // 单帧宽度
         const frameHeight = 384; // 单帧高度
-        const targetHeight = 360; // 目标高度（与主角一致）
+        
+        // 根据敌人类型设置不同的尺寸和偏移
+        let targetHeight = 360; // 默认高度
+        let yOffsetPercent = 0.15; // 默认Y偏移百分比
+        
+        if (enemy.type === 'skeleton') {
+          targetHeight = 360; // 骨骼兵：与主角一致
+          yOffsetPercent = 0.15; // 向下偏移15%
+        } else if (enemy.type === 'ghost') {
+          targetHeight = 200; // 幽灵：比主角小
+          yOffsetPercent = 0; // 居中对齐
+        }
+        
         const spriteScale = (targetHeight / frameHeight) * hitScale;
         
         // 移动到敌人位置
@@ -1560,11 +1603,10 @@ export class GameEngine {
         // 水平翻转（面向左侧）
         this.ctx.scale(-1, 1);
         
-        // 根据当前动画状态渲染
+        // 根据当前动画状态渲某
         const currentAnim = enemy.spriteAnimation[enemy.animationState];
         if (currentAnim) {
-          // 骨骼兵内容在帧的上半部分，向下偏移15%
-          const yOffset = (frameHeight * spriteScale) * 0.15;
+          const yOffset = (frameHeight * spriteScale) * yOffsetPercent;
           
           currentAnim.render(
             this.ctx,
