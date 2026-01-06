@@ -32,6 +32,12 @@ export interface Enemy {
   initialY?: number; // 初始Y坐标，用于波浪移动
   dashCooldown?: number; // 冲刺冷却时间
   isDashing?: boolean; // 是否正在冲刺
+  spriteAnimation?: any; // 精灵动画实例（支持多个动画状态：idle/attack）
+  animationState?: 'idle' | 'attack'; // 当前动画状态
+  attackCooldown?: number; // 攻击冷却时间
+  isAttacking?: boolean; // 是否正在攻击
+  attackHitFrame?: number; // 攻击命中帧（在这一帧判定伤害）
+  hasDealtDamage?: boolean; // 本次攻击是否已经造成伤害
 }
 
 export interface Player {
@@ -128,6 +134,9 @@ export class GameEngine {
   
   // 敌人精灵图
   private enemyImages: Map<Enemy['type'], HTMLImageElement> = new Map();
+  
+  // 敌人动画（支持多个动画状态）
+  private enemyAnimations: Map<string, any> = new Map();
   
   // 音效管理器
   private soundEffects: any = null; // 将在Game.tsx中设置
@@ -330,6 +339,53 @@ export class GameEngine {
         bossImg.onerror = () => console.error(`Failed to load BOSS sprite: ${bossType}`);
       }
     }
+    
+    // 加载骨骼兵动画（idle + attack）
+    this.loadSkeletonAnimations();
+  }
+  
+  private loadSkeletonAnimations(): void {
+    const { enemySpriteConfigs } = require('@/data/enemyAnimations');
+    const skeletonConfig = enemySpriteConfigs.skeleton;
+    
+    if (!skeletonConfig) return;
+    
+    // 加载idle动画
+    const idleImg = new Image();
+    idleImg.src = skeletonConfig.idle.path;
+    
+    // 加载attack动画
+    const attackImg = new Image();
+    attackImg.src = skeletonConfig.attack.path;
+    
+    let loadedCount = 0;
+    const checkLoaded = () => {
+      loadedCount++;
+      if (loadedCount === 2) {
+        // 两个图片都加载完成，创建SpriteAnimation实例
+        const { SpriteAnimation } = require('@/lib/spriteAnimation');
+        
+        const idleAnim = new SpriteAnimation(idleImg, skeletonConfig.idle);
+        const attackAnim = new SpriteAnimation(attackImg, skeletonConfig.attack);
+        
+        // 存储到类属性
+        if (!this.enemyAnimations) {
+          this.enemyAnimations = new Map();
+        }
+        this.enemyAnimations.set('skeleton', {
+          idle: idleAnim,
+          attack: attackAnim,
+        });
+        
+        console.log('Skeleton animations loaded (idle + attack)');
+      }
+    };
+    
+    idleImg.onload = checkLoaded;
+    idleImg.onerror = () => console.error('Failed to load skeleton idle animation');
+    
+    attackImg.onload = checkLoaded;
+    attackImg.onerror = () => console.error('Failed to load skeleton attack animation');
   }
   
   private initializePlayerAnimation(idleImg: HTMLImageElement, walkImg: HTMLImageElement, attackImg: HTMLImageElement, hurtImg: HTMLImageElement): void {
@@ -617,6 +673,62 @@ export class GameEngine {
       if (enemy.hitAnimation !== undefined && enemy.hitAnimation > 0) {
         enemy.hitAnimation--;
       }
+      
+      // 骨骼兵攻击 AI
+      if (enemy.type === 'skeleton' && enemy.spriteAnimation) {
+        const distanceToPlayer = Math.sqrt(
+          (enemy.x - this.player.x) ** 2 + 
+          (enemy.y - this.player.y) ** 2
+        );
+        
+        const attackRange = 150; // 攻击范围
+        
+        // 如果正在攻击
+        if (enemy.isAttacking) {
+          // 更新攻击动画
+          const attackAnim = enemy.spriteAnimation.attack;
+          if (attackAnim) {
+            attackAnim.update(1/60);
+            
+            // 在攻击命中帧判定伤害
+            const currentFrame = attackAnim.currentFrame;
+            if (currentFrame === enemy.attackHitFrame && !enemy.hasDealtDamage) {
+              // 检查是否在攻击范围内
+              if (distanceToPlayer < attackRange) {
+                this.loseLife();
+                enemy.hasDealtDamage = true; // 标记已造成伤害
+              }
+            }
+            
+            // 攻击动画播放完毕，回到idle状态
+            if (attackAnim.isAnimationFinished()) {
+              enemy.animationState = 'idle';
+              enemy.isAttacking = false;
+              enemy.hasDealtDamage = false;
+              enemy.attackCooldown = 120; // 重置冷却
+              attackAnim.reset(); // 重置攻击动画
+            }
+          }
+        } else {
+          // 更新idle动画
+          const idleAnim = enemy.spriteAnimation.idle;
+          if (idleAnim) {
+            idleAnim.update(1/60);
+          }
+          
+          // 检查是否进入攻击范围
+          if (distanceToPlayer < attackRange && enemy.attackCooldown !== undefined) {
+            if (enemy.attackCooldown > 0) {
+              enemy.attackCooldown--;
+            } else {
+              // 触发攻击
+              enemy.animationState = 'attack';
+              enemy.isAttacking = true;
+              enemy.hasDealtDamage = false;
+            }
+          }
+        }
+      }
     });
     
     // 平滑移动玩家到目标位置
@@ -867,6 +979,16 @@ export class GameEngine {
       dashCooldown: enemyType === 'werewolf' ? 60 : undefined,
       isDashing: false,
     };
+    
+    // 为骨骼兵分配动画和政击属性
+    if (enemyType === 'skeleton' && this.enemyAnimations.has('skeleton')) {
+      enemy.spriteAnimation = this.enemyAnimations.get('skeleton');
+      enemy.animationState = 'idle';
+      enemy.attackCooldown = 120; // 2秒攻击冷却（60fps）
+      enemy.isAttacking = false;
+      enemy.attackHitFrame = 3; // 在第3帧（剑劈下的一帧）判定伤害
+      enemy.hasDealtDamage = false;
+    }
     
     // 如果是BOSS，添加血量和护卫炸弹
     if (enemyType === 'vampire') {
@@ -1422,8 +1544,40 @@ export class GameEngine {
         hitScale = 1.0 + (enemy.hitAnimation / 10) * 0.3;
       }
       
-      if (enemy.image && enemy.image.complete) {
-        // 绘制精灵图
+      // 如果有精灵动画（骨骼兵），使用帧动画渲染
+      if (enemy.spriteAnimation && enemy.animationState) {
+        this.ctx.save();
+        this.ctx.globalAlpha = hitAlpha;
+        
+        const frameWidth = 344; // 单帧宽度
+        const frameHeight = 384; // 单帧高度
+        const targetHeight = 360; // 目标高度（与主角一致）
+        const spriteScale = (targetHeight / frameHeight) * hitScale;
+        
+        // 移动到敌人位置
+        this.ctx.translate(enemy.x, enemy.y + flyOffset);
+        
+        // 水平翻转（面向左侧）
+        this.ctx.scale(-1, 1);
+        
+        // 根据当前动画状态渲染
+        const currentAnim = enemy.spriteAnimation[enemy.animationState];
+        if (currentAnim) {
+          // 骨骼兵内容在帧的上半部分，向下偏移15%
+          const yOffset = (frameHeight * spriteScale) * 0.15;
+          
+          currentAnim.render(
+            this.ctx,
+            -(frameWidth * spriteScale) / 2,
+            -(frameHeight * spriteScale) / 2 + yOffset,
+            spriteScale,
+            false
+          );
+        }
+        
+        this.ctx.restore();
+      } else if (enemy.image && enemy.image.complete) {
+        // 绘制精灵图（普通敌人）
         this.ctx.save();
         this.ctx.globalAlpha = hitAlpha;
         
