@@ -34,7 +34,7 @@ export interface Enemy {
   dashCooldown?: number; // 冲刺冷却时间
   isDashing?: boolean; // 是否正在冲刺
   spriteAnimation?: any; // 精灵动画实例（支持多个动画状态：idle/attack）
-  animationState?: 'idle' | 'attack'; // 当前动画状态
+  animationState?: 'idle' | 'walk' | 'attack'; // 当前动画状态
   attackCooldown?: number; // 攻击冷却时间
   isAttacking?: boolean; // 是否正在攻击
   attackHitFrame?: number; // 攻击命中帧（在这一帧判定伤害）
@@ -762,9 +762,9 @@ export class GameEngine {
               }
             }
             
-            // 攻击动画播放完毕，回到idle状态
+            // 攻击动画播放完毕，回到walk状态
             if (attackAnim.isAnimationFinished()) {
-              enemy.animationState = 'idle';
+              enemy.animationState = 'walk';
               enemy.isAttacking = false;
               enemy.hasDealtDamage = false;
               enemy.attackCooldown = 180; // 重置冷却（3秒，降低攻击频率）
@@ -772,10 +772,14 @@ export class GameEngine {
             }
           }
         } else {
-          // 更新idle动画
-          const idleAnim = enemy.spriteAnimation.idle;
-          if (idleAnim) {
-            idleAnim.update(1/60);
+          // 更新walk动画（如果有）或idle动画
+          if (enemy.animationState === 'walk' && enemy.spriteAnimation.walk) {
+            enemy.spriteAnimation.walk.update(1/60);
+          } else {
+            const idleAnim = enemy.spriteAnimation.idle;
+            if (idleAnim) {
+              idleAnim.update(1/60);
+            }
           }
           
           // 检查是否进入攻击范围
@@ -1042,10 +1046,10 @@ export class GameEngine {
       isDashing: false,
     };
     
-    // 为骨骼兵分配动画和政击属性
+    // 为骨骼兵分配动画和攻击属性
     if (enemyType === 'skeleton' && this.enemyAnimations.has('skeleton')) {
       enemy.spriteAnimation = this.enemyAnimations.get('skeleton');
-      enemy.animationState = 'idle';
+      enemy.animationState = 'walk'; // 默认使用走路动画
       enemy.attackCooldown = 180; // 3秒攻击冷却（60fps，降低攻击频率）
       enemy.isAttacking = false;
       enemy.attackHitFrame = 3; // 在第3帧（剑劈下的一帧）判定伤害
@@ -1625,8 +1629,8 @@ export class GameEngine {
         let yOffsetPercent = 0.15; // 默认Y偏移百分比
         
         if (enemy.type === 'skeleton') {
-          targetHeight = 200; // 骷髅兵：与幽灵一样高（200px）
-          yOffsetPercent = 0.05; // 向下偏移5%
+          targetHeight = 150; // 骷髅兵：与幽灵高度接近（150px）
+          yOffsetPercent = 0.02; // 向下偏移2%
         } else if (enemy.type === 'ghost') {
           targetHeight = 200; // 幽灵：比主角小
           yOffsetPercent = 0; // 居中对齐
@@ -1642,7 +1646,9 @@ export class GameEngine {
         
         // 根据当前动画状态渲某
         let currentAnim = null;
-        if (enemy.animationState === 'idle') {
+        if (enemy.animationState === 'walk' && enemy.spriteAnimation.walk) {
+          currentAnim = enemy.spriteAnimation.walk;
+        } else if (enemy.animationState === 'idle') {
           currentAnim = enemy.spriteAnimation.idle;
         } else if (enemy.animationState === 'attack' && enemy.spriteAnimation.attack) {
           currentAnim = enemy.spriteAnimation.attack;
