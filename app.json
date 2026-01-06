@@ -4,15 +4,33 @@
     "slug": "vampire-rhythm-game",
     "version": "1.0.0",
     "orientation": "landscape",
+    "icon": "./client/public/icon.png",
     "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./client/public/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a1a"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
+    "ios": {
+      "supportsTabletMode": true,
+      "bundleIdentifier": "com.vamprhythm.game"
+    },
     "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./client/public/icon.png",
+        "backgroundColor": "#1a1a1a"
+      },
       "package": "com.vamprhythm.game",
       "permissions": [
         "android.permission.INTERNET"
-      ]
+      ],
+      "versionCode": 1
+    },
+    "web": {
+      "favicon": "./client/public/favicon.ico"
     },
     "extra": {
       "eas": {
