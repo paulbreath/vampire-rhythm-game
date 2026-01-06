@@ -16,7 +16,7 @@ export interface EnemySpriteConfig {
 export const enemySpriteConfigs: Record<string, EnemySpriteConfig> = {
   skeleton: {
     idle: {
-      path: '/images/enemy-skeleton-idle.png',
+      path: '/images/enemy-skeleton-idle.png?v=2',  // 版本参数绕过缓存
       frameCount: 8,
       fps: 8,
       loop: true,
@@ -24,7 +24,7 @@ export const enemySpriteConfigs: Record<string, EnemySpriteConfig> = {
       rows: 2,
     },
     attack: {
-      path: '/images/enemy-skeleton-attack.png',
+      path: '/images/enemy-skeleton-attack.png?v=2',  // 版本参数绕过缓存
       frameCount: 8,
       fps: 12, // 攻击动画更快
       loop: false, // 攻击动画不循环，播放一次后回到idle

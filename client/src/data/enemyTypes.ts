@@ -188,22 +188,22 @@ export function getAllEnemyTypes(): EnemyType[] {
 // 根据关卡获取推荐的敌人组合
 export function getEnemiesForStage(stageId: string): EnemyType[] {
   const stageEnemies: Record<string, EnemyType[]> = {
-    // 教堂区域
-    'abandoned-church': ['bat_blue', 'bat_purple', 'skeleton'],
-    'bell-tower': ['bat_blue', 'crow', 'ghost'],
-    'catacombs': ['skeleton', 'ghost', 'bat_purple'],
+    // 教堂区域 - 每个关卡都有爆炸蝙蝠(bomb)
+    'abandoned-church': ['bat_blue', 'bat_purple', 'skeleton', 'bomb'],
+    'bell-tower': ['bat_blue', 'crow', 'ghost', 'bomb'],
+    'catacombs': ['skeleton', 'ghost', 'bat_purple', 'bomb'],
     
     // 墓地区域
-    'misty-graveyard': ['ghost', 'skeleton', 'bat_yellow', 'crow'],
-    'ancient-tomb': ['skeleton', 'vampire', 'ghost', 'bat_red'],
-    'cursed-forest': ['werewolf', 'crow', 'bat_yellow', 'medusa_head'],
+    'misty-graveyard': ['ghost', 'skeleton', 'bat_yellow', 'crow', 'bomb'],
+    'ancient-tomb': ['skeleton', 'vampire', 'ghost', 'bat_red', 'bomb'],
+    'cursed-forest': ['werewolf', 'crow', 'bat_yellow', 'medusa_head', 'bomb'],
     
     // 城堡区域
-    'castle-hall': ['vampire', 'bat_red', 'skeleton', 'ghost'],
-    'library': ['ghost', 'medusa_head', 'bat_purple', 'vampire'],
-    'alchemy-lab': ['bat_yellow', 'bat_red', 'crow', 'skeleton'],
-    'throne-room': ['vampire', 'werewolf', 'medusa_head', 'bat_red', 'crow']
+    'castle-hall': ['vampire', 'bat_red', 'skeleton', 'ghost', 'bomb'],
+    'library': ['ghost', 'medusa_head', 'bat_purple', 'vampire', 'bomb'],
+    'alchemy-lab': ['bat_yellow', 'bat_red', 'crow', 'skeleton', 'bomb'],
+    'throne-room': ['vampire', 'werewolf', 'medusa_head', 'bat_red', 'crow', 'bomb']
   };
   
-  return stageEnemies[stageId] || ['bat_blue', 'bat_purple', 'skeleton'];
+  return stageEnemies[stageId] || ['bat_blue', 'bat_purple', 'skeleton', 'bomb'];
 }

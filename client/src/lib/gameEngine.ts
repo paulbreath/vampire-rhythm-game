@@ -1625,8 +1625,8 @@ export class GameEngine {
         let yOffsetPercent = 0.15; // 默认Y偏移百分比
         
         if (enemy.type === 'skeleton') {
-          targetHeight = 240; // 骷髅兵：与主角大小相似（240px）
-          yOffsetPercent = 0.1; // 向下偏移10%
+          targetHeight = 200; // 骷髅兵：与幽灵一样高（200px）
+          yOffsetPercent = 0.05; // 向下偏移5%
         } else if (enemy.type === 'ghost') {
           targetHeight = 200; // 幽灵：比主角小
           yOffsetPercent = 0; // 居中对齐
