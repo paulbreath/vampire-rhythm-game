@@ -83,9 +83,9 @@ export default function Home() {
       {/* 主内容 - 右侧按钮区域 */}
       <div className="relative z-10 min-h-screen flex items-center justify-end px-4 lg:px-16">
         <div className="flex flex-col gap-6 w-full max-w-md lg:max-w-lg pb-20 lg:pb-0">
-          {/* START GAME - 主要按钮 */}
+          {/* START GAME - 主要按钮，进入剧情展示页面 */}
           <GlassButton
-            onClick={() => setLocation("/game")}
+            onClick={() => setLocation("/story")}
             size="lg"
             customIcon={<div style={getUIIconStyle('play')} />}
           >

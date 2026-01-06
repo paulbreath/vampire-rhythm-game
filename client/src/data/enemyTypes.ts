@@ -189,7 +189,7 @@ export function getAllEnemyTypes(): EnemyType[] {
 export function getEnemiesForStage(stageId: string): EnemyType[] {
   const stageEnemies: Record<string, EnemyType[]> = {
     // 教堂区域 - 每个关卡都有爆炸蝙蝠(bomb)
-    'abandoned-church': ['bat_blue', 'bat_purple', 'skeleton', 'bomb'],
+    'abandoned-church': ['bat_blue', 'bat_purple', 'bat_red', 'bat_yellow', 'bomb'], // 废弃教堂只有蝙蝠
     'bell-tower': ['bat_blue', 'crow', 'ghost', 'bomb'],
     'catacombs': ['skeleton', 'ghost', 'bat_purple', 'bomb'],
     
