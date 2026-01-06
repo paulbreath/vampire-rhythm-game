@@ -15,18 +15,7 @@
       }
     },
     "production": {
-      "distribution": "store",
-      "android": {
-        "buildType": "apk"
-      }
-    }
-  },
-  "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "./android-key.json",
-        "track": "internal"
-      }
+      "distribution": "store"
     }
   }
 }
