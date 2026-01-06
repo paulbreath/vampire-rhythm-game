@@ -347,19 +347,24 @@ export class GameEngine {
   
   private loadSkeletonAnimations(): void {
     
-    // 加载骨骼兵动画
+    // 加载骨骼兵动画（idle + walk + attack）
     const skeletonConfig = enemySpriteConfigs.skeleton;
     if (skeletonConfig) {
       const skeletonIdleImg = new Image();
       skeletonIdleImg.src = skeletonConfig.idle.path;
       
+      const skeletonWalkImg = new Image();
+      skeletonWalkImg.src = skeletonConfig.walk!.path;
+      
       const skeletonAttackImg = new Image();
       skeletonAttackImg.src = skeletonConfig.attack!.path;
       
       let skeletonLoadedCount = 0;
+      const totalToLoad = 3; // idle + walk + attack
+      
       const checkSkeletonLoaded = () => {
         skeletonLoadedCount++;
-        if (skeletonLoadedCount === 2) {
+        if (skeletonLoadedCount === totalToLoad) {
           // 转换为AnimationState格式
           const idleState: AnimationState = {
             name: 'idle',
@@ -370,6 +375,18 @@ export class GameEngine {
               frameRate: skeletonConfig.idle.fps,
               loop: skeletonConfig.idle.loop,
               columns: skeletonConfig.idle.cols,
+            },
+          };
+          
+          const walkState: AnimationState = {
+            name: 'walk',
+            config: {
+              frameWidth: skeletonWalkImg.width / skeletonConfig.walk!.cols,
+              frameHeight: skeletonWalkImg.height / skeletonConfig.walk!.rows,
+              frameSequence: Array.from({ length: skeletonConfig.walk!.frameCount }, (_, i) => i),
+              frameRate: skeletonConfig.walk!.fps,
+              loop: skeletonConfig.walk!.loop,
+              columns: skeletonConfig.walk!.cols,
             },
           };
           
@@ -386,6 +403,7 @@ export class GameEngine {
           };
           
           const idleAnim = new SpriteAnimation(skeletonIdleImg, idleState);
+          const walkAnim = new SpriteAnimation(skeletonWalkImg, walkState);
           const attackAnim = new SpriteAnimation(skeletonAttackImg, attackState);
           
           if (!this.enemyAnimations) {
@@ -393,15 +411,19 @@ export class GameEngine {
           }
           this.enemyAnimations.set('skeleton', {
             idle: idleAnim,
+            walk: walkAnim,
             attack: attackAnim,
           });
           
-          console.log('Skeleton animations loaded (idle + attack)');
+          console.log('Skeleton animations loaded (idle + walk + attack)');
         }
       };
       
       skeletonIdleImg.onload = checkSkeletonLoaded;
       skeletonIdleImg.onerror = () => console.error('Failed to load skeleton idle animation');
+      
+      skeletonWalkImg.onload = checkSkeletonLoaded;
+      skeletonWalkImg.onerror = () => console.error('Failed to load skeleton walk animation');
       
       skeletonAttackImg.onload = checkSkeletonLoaded;
       skeletonAttackImg.onerror = () => console.error('Failed to load skeleton attack animation');
