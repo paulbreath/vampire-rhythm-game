@@ -161,6 +161,16 @@ export class GameEngine {
   private difficulty: 'easy' | 'normal' | 'hard' = 'normal'; // 难度等级
   private bossConfig: BossConfig | null = null; // 当前地图的BOSS配置
   private bossSpawned: boolean = false; // BOSS是否已生成
+  
+  // 新手引导系统
+  private isTutorialStage: boolean = false; // 是否是新手关卡
+  private tutorialStep: number = 0; // 当前引导步骤
+  private tutorialPaused: boolean = false; // 引导是否暂停游戏
+  private tutorialMessage: string = ''; // 当前引导消息
+  private tutorialTimer: number = 0; // 引导计时器
+  private tutorialCompleted: boolean = false; // 引导是否完成
+  private firstEnemyKilled: boolean = false; // 是否击杀了第一个敌人
+  private firstBombSeen: boolean = false; // 是否看到了第一个炸弹
 
   constructor(canvas: HTMLCanvasElement, speedMultiplier: number = 1.0, densityMultiplier: number = 1.0, stageId: string = 'abandoned-church') {
     this.speedMultiplier = speedMultiplier;
@@ -211,6 +221,17 @@ export class GameEngine {
     
     // 加载美术资源
     this.loadAssets();
+    
+    // 检查是否是新手关卡（第一关：废弃教堂）
+    this.isTutorialStage = stageId === 'abandoned-church';
+    if (this.isTutorialStage) {
+      // 检查是否已经完成过新手引导
+      const tutorialDone = localStorage.getItem('tutorial_completed');
+      if (tutorialDone === 'true') {
+        this.tutorialCompleted = true;
+      }
+      console.log('Tutorial stage detected, tutorial completed:', this.tutorialCompleted);
+    }
   }
   
   // 已移除orientation检测，只支持横屏模式
@@ -1437,6 +1458,11 @@ export class GameEngine {
     const actualPoints = Math.floor(points * (1 + this.combo * 0.1));
     this.score += actualPoints;
     
+    // 新手引导：标记第一次击杀敌人
+    if (!this.firstEnemyKilled) {
+      this.firstEnemyKilled = true;
+    }
+    
     // 添加经验值
     const expGained = experienceManager.calculateKillExp(enemyType, this.combo);
     const result = experienceManager.addExp(this.playerStats, expGained);
@@ -1861,6 +1887,9 @@ export class GameEngine {
     
     // 绘制屏幕顶部BOSS血条UI
     this.renderBossHealthBar();
+    
+    // 绘制新手引导
+    this.renderTutorial();
   }
   
   private renderBossHealthBar(): void {
@@ -2114,5 +2143,115 @@ export class GameEngine {
     this.ctx.moveTo(startPoint.x, startPoint.y);
     this.ctx.quadraticCurveTo(controlX, controlY, endPoint.x, endPoint.y);
     this.ctx.stroke();
+  }
+  
+  // 新手引导渲染
+  private renderTutorial(): void {
+    // 如果不是新手关卡或已完成引导，不显示
+    if (!this.isTutorialStage || this.tutorialCompleted) return;
+    
+    const canvas = this.canvas;
+    const ctx = this.ctx;
+    
+    // 引导步骤逻辑
+    let message = '';
+    let subMessage = '';
+    let showArrow = false;
+    let arrowDirection = 'right'; // 箭头方向
+    
+    // 根据游戏状态决定显示哪个引导
+    if (!this.isGameStarted) {
+      // 游戏未开始，不显示引导
+      return;
+    }
+    
+    if (this.tutorialStep === 0) {
+      // 第一步：教玩家滑动攻击
+      message = '🗡️ 滑动攻击敌人';
+      subMessage = '在屏幕上滑动来攻击飞过来的敌人';
+      showArrow = true;
+      arrowDirection = 'right';
+      
+      // 如果击杀了第一个敌人，进入下一步
+      if (this.firstEnemyKilled) {
+        this.tutorialStep = 1;
+        this.tutorialTimer = 0;
+      }
+    } else if (this.tutorialStep === 1) {
+      // 第二步：警告炸弹
+      message = '💣 警告：躲避炸弹！';
+      subMessage = '红色的炸弹不能攻击，触碰会扣血';
+      
+      // 3秒后自动进入下一步
+      this.tutorialTimer++;
+      if (this.tutorialTimer > 180) { // 3秒 @ 60fps
+        this.tutorialStep = 2;
+        this.tutorialTimer = 0;
+      }
+    } else if (this.tutorialStep === 2) {
+      // 第三步：连击系统
+      message = '🔥 连续击杀获得连击加成';
+      subMessage = '连击越高，分数越多！';
+      
+      // 3秒后完成引导
+      this.tutorialTimer++;
+      if (this.tutorialTimer > 180) { // 3秒 @ 60fps
+        this.tutorialCompleted = true;
+        localStorage.setItem('tutorial_completed', 'true');
+        console.log('Tutorial completed!');
+        return;
+      }
+    }
+    
+    if (!message) return;
+    
+    // 绘制半透明背景
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    const boxWidth = 400;
+    const boxHeight = 100;
+    const boxX = (canvas.width - boxWidth) / 2;
+    const boxY = canvas.height - 150;
+    
+    // 绘制圆角矩形背景
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 15);
+    ctx.fill();
+    
+    // 绘制边框
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    
+    // 绘制主消息
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px "Creepster", cursive';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#000000';
+    ctx.shadowBlur = 5;
+    ctx.fillText(message, canvas.width / 2, boxY + 40);
+    
+    // 绘制副消息
+    ctx.fillStyle = '#cccccc';
+    ctx.font = '16px sans-serif';
+    ctx.fillText(subMessage, canvas.width / 2, boxY + 70);
+    ctx.shadowBlur = 0;
+    
+    // 绘制箭头动画（指向右侧敌人）
+    if (showArrow) {
+      const arrowX = canvas.width / 2 + 150;
+      const arrowY = canvas.height / 2;
+      const arrowOffset = Math.sin(Date.now() / 200) * 10; // 抖动效果
+      
+      ctx.fillStyle = '#ffd700';
+      ctx.beginPath();
+      ctx.moveTo(arrowX + arrowOffset, arrowY);
+      ctx.lineTo(arrowX - 30 + arrowOffset, arrowY - 20);
+      ctx.lineTo(arrowX - 30 + arrowOffset, arrowY + 20);
+      ctx.closePath();
+      ctx.fill();
+      
+      // 箭头尾巴
+      ctx.fillRect(arrowX - 60 + arrowOffset, arrowY - 8, 30, 16);
+    }
   }
 }
