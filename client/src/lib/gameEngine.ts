@@ -6,6 +6,8 @@ import { newEquipmentManager } from './newEquipmentManager';
 import { vampireHeroAnimations, vampireHeroSprites } from '../data/vampireHeroAnimations';
 import type { WeaponConfig } from '../types/equipment';
 import { getEnemiesForStage, type EnemyType } from '../data/enemyTypes';
+import { getBossForMap, hasBoss, type BossConfig } from '../data/bossTypes';
+import { bossSpriteConfigs } from '../data/bossAnimations';
 
 export interface Enemy {
   id: number;
@@ -147,13 +149,19 @@ export class GameEngine {
   private stageId: string = 'abandoned-church'; // 当前地图ID
   private allowedEnemyTypes: EnemyType[] = []; // 当前地图允许的怪物类型
   private difficulty: 'easy' | 'normal' | 'hard' = 'normal'; // 难度等级
+  private bossConfig: BossConfig | null = null; // 当前地图的BOSS配置
+  private bossSpawned: boolean = false; // BOSS是否已生成
 
   constructor(canvas: HTMLCanvasElement, speedMultiplier: number = 1.0, densityMultiplier: number = 1.0, stageId: string = 'abandoned-church') {
     this.speedMultiplier = speedMultiplier;
     this.densityMultiplier = densityMultiplier;
     this.stageId = stageId;
     this.allowedEnemyTypes = getEnemiesForStage(stageId);
+    this.bossConfig = getBossForMap(stageId);
     console.log(`Stage ${stageId} enemy types:`, this.allowedEnemyTypes);
+    if (this.bossConfig) {
+      console.log(`Stage ${stageId} has BOSS:`, this.bossConfig.name);
+    }
     
     // 根据speedMultiplier推断难度
     if (speedMultiplier <= 1.0) {
@@ -292,8 +300,8 @@ export class GameEngine {
       bat_yellow: '/images/enemies/bat-yellow-side.png',
       vampire: '/images/enemies/vampire-boss-side.png',
       bomb: '/images/enemies/bomb-bat-side.png',
-      skeleton: '/images/enemy-skeleton.png',
-      ghost: '/images/enemy-ghost.png',
+      skeleton: '/images/enemy-skeleton-idle.png',
+      ghost: '/images/enemy-ghost-idle.png',
       werewolf: '/images/enemy-werewolf.png',
       medusa_head: '/images/enemy-medusa-head.png',
       crow: '/images/enemy-crow.png',
@@ -306,6 +314,21 @@ export class GameEngine {
         this.enemyImages.set(type, img);
         console.log(`Enemy sprite loaded: ${type}`);
       };
+    }
+    
+    // 加载BOSS精灵图（如果当前地图有BOSS）
+    if (this.bossConfig) {
+      const bossType = this.bossConfig.type;
+      const bossConfig = bossSpriteConfigs[bossType];
+      if (bossConfig) {
+        const bossImg = new Image();
+        bossImg.src = bossConfig.idle.path;
+        bossImg.onload = () => {
+          this.enemyImages.set(bossType as any, bossImg);
+          console.log(`BOSS sprite loaded: ${bossType}`);
+        };
+        bossImg.onerror = () => console.error(`Failed to load BOSS sprite: ${bossType}`);
+      }
     }
   }
   
@@ -457,6 +480,17 @@ export class GameEngine {
       // 调试日志：每5秒输出一次
       if (Math.floor(currentTime) % 5 === 0 && Math.floor(currentTime * 10) % 10 === 0) {
         console.log(`Current time: ${currentTime.toFixed(2)}s, Upcoming notes: ${this.upcomingNotes.length}, Enemies: ${this.enemies.length}`);
+      }
+      
+      // 检查是否需要生成BOSS（关卡进行到50%时）
+      if (this.bossConfig && !this.bossSpawned && this.chartData) {
+        const totalDuration = this.chartData.metadata.duration || 180; // 默认180秒
+        const bossSpawnTime = totalDuration * 0.5; // 关卡中期生成BOSS
+        if (currentTime >= bossSpawnTime) {
+          this.spawnBoss();
+          this.bossSpawned = true;
+          console.log(`BOSS spawned at ${currentTime.toFixed(2)}s: ${this.bossConfig.name}`);
+        }
       }
       
       // 只在音乐实际播放且超过初始延迟后才生成敌人
@@ -872,6 +906,74 @@ export class GameEngine {
     }
     
     this.enemies.push(enemy);
+  }
+  
+  // 生成BOSS
+  private spawnBoss(): void {
+    if (!this.bossConfig) return;
+    
+    const boss = this.bossConfig;
+    const x = this.canvas.width + boss.size;
+    const y = this.canvas.height / 2; // BOSS生成在画面中间
+    
+    const bossEnemy: Enemy = {
+      id: this.nextEnemyId++,
+      type: boss.type as any, // 使用BOSS类型
+      x,
+      y,
+      speed: boss.speed * this.speedMultiplier,
+      size: boss.size,
+      color: boss.color,
+      image: this.enemyImages.get(boss.type as any), // 使用BOSS精灵图
+      animationOffset: 0,
+      isBoss: true,
+      health: boss.health,
+      maxHealth: boss.health,
+      movementPattern: 'wave', // BOSS使用波浪移动
+      initialY: y,
+      guardBombs: [], // 初始化护卫炸弹列表
+    };
+    
+    this.enemies.push(bossEnemy);
+    
+    // 根据难度生成护卫炸弹
+    const guardCount = this.difficulty === 'easy' ? 1 : this.difficulty === 'normal' ? 2 : 3;
+    const guardRadius = 100; // 护卫环绕半径
+    
+    for (let i = 0; i < guardCount; i++) {
+      const guardAngle = (Math.PI * 2 * i) / guardCount; // 均匀分布
+      const guardX = bossEnemy.x + Math.cos(guardAngle) * guardRadius;
+      const guardY = bossEnemy.y + Math.sin(guardAngle) * guardRadius;
+      
+      const guardBomb: Enemy = {
+        id: this.nextEnemyId++,
+        type: 'bomb',
+        x: guardX,
+        y: guardY,
+        speed: bossEnemy.speed,
+        size: 45,
+        color: '#ff0000',
+        image: this.enemyImages.get('bomb'),
+        animationOffset: Math.random() * Math.PI * 2,
+        isGuardBomb: true,
+        guardBossId: bossEnemy.id,
+        guardAngle: guardAngle,
+        guardRadius: guardRadius,
+      };
+      
+      this.enemies.push(guardBomb);
+      bossEnemy.guardBombs!.push(guardBomb.id);
+    }
+    
+    // 显示BOSS出现提示
+    this.createFloatingText(
+      `BOSS: ${boss.name}`,
+      this.canvas.width / 2,
+      this.canvas.height / 3,
+      '#ff0000',
+      48,
+      true
+    );
   }
 
   public handleSwipe(x: number, y: number): void {

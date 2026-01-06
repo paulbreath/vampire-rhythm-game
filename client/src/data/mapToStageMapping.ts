@@ -34,20 +34,20 @@ export const STAGE_TO_DEFAULT_MAP: Record<string, string> = {
 // 地图节点ID到背景图的映射
 export const MAP_NODE_BACKGROUNDS: Record<string, string> = {
   // 教堂区域
-  'abandoned-church': '/images/backgrounds/castle-bg.png', // 废弃教堂
-  'bell-tower': '/images/backgrounds/castle-bg.png', // 钟楼（使用教堂背景）
-  'catacombs': '/images/backgrounds/castle-bg.png', // 地下墓穴（使用教堂背景）
+  'abandoned-church': '/images/backgrounds/bg-abandoned-church.png', // 废弃教堂
+  'bell-tower': '/images/backgrounds/bg-bell-tower.png', // 钟楼
+  'catacombs': '/images/backgrounds/bg-catacombs.png', // 地下墓穴
   
   // 墓地区域
-  'misty-graveyard': '/images/backgrounds/graveyard.png', // 迷雾墓地
-  'ancient-tomb': '/images/backgrounds/graveyard.png', // 古老陵墓（使用墓地背景）
-  'cursed-forest': '/images/backgrounds/graveyard.png', // 诅咒森林（使用墓地背景）
+  'misty-graveyard': '/images/backgrounds/bg-misty-graveyard.png', // 迷雾墓地
+  'ancient-tomb': '/images/backgrounds/bg-ancient-tomb.png', // 古老陵墓
+  'cursed-forest': '/images/backgrounds/bg-cursed-forest.png', // 诅咒森林
   
   // 城堡区域
-  'castle-hall': '/images/backgrounds/castle.png', // 城堡大厅
-  'library': '/images/backgrounds/castle.png', // 禁忌图书馆（使用城堡背景）
-  'alchemy-lab': '/images/backgrounds/castle.png', // 炼金实验室（使用城堡背景）
-  'throne-room': '/images/backgrounds/castle.png' // 王座厅（使用城堡背景）
+  'castle-hall': '/images/backgrounds/bg-castle-hall.png', // 城堡大厅
+  'library': '/images/backgrounds/bg-library.png', // 禁忌图书馆
+  'alchemy-lab': '/images/backgrounds/bg-alchemy-lab.png', // 炼金实验室
+  'throne-room': '/images/backgrounds/bg-throne-room.png' // 王座厅
 };
 
 // 获取地图节点的背景图
