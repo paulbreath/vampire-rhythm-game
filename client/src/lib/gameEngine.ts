@@ -8,6 +8,7 @@ import type { WeaponConfig } from '../types/equipment';
 import { getEnemiesForStage, type EnemyType } from '../data/enemyTypes';
 import { getBossForMap, hasBoss, type BossConfig } from '../data/bossTypes';
 import { bossSpriteConfigs } from '../data/bossAnimations';
+import { enemySpriteConfigs } from '../data/enemyAnimations';
 
 export interface Enemy {
   id: number;
@@ -345,8 +346,6 @@ export class GameEngine {
   }
   
   private loadSkeletonAnimations(): void {
-    const { enemySpriteConfigs } = require('@/data/enemyAnimations');
-    const { SpriteAnimation } = require('@/lib/spriteAnimation');
     
     // 加载骨骼兵动画
     const skeletonConfig = enemySpriteConfigs.skeleton;
@@ -355,14 +354,39 @@ export class GameEngine {
       skeletonIdleImg.src = skeletonConfig.idle.path;
       
       const skeletonAttackImg = new Image();
-      skeletonAttackImg.src = skeletonConfig.attack.path;
+      skeletonAttackImg.src = skeletonConfig.attack!.path;
       
       let skeletonLoadedCount = 0;
       const checkSkeletonLoaded = () => {
         skeletonLoadedCount++;
         if (skeletonLoadedCount === 2) {
-          const idleAnim = new SpriteAnimation(skeletonIdleImg, skeletonConfig.idle);
-          const attackAnim = new SpriteAnimation(skeletonAttackImg, skeletonConfig.attack);
+          // 转换为AnimationState格式
+          const idleState: AnimationState = {
+            name: 'idle',
+            config: {
+              frameWidth: skeletonIdleImg.width / skeletonConfig.idle.cols,
+              frameHeight: skeletonIdleImg.height / skeletonConfig.idle.rows,
+              frameSequence: Array.from({ length: skeletonConfig.idle.frameCount }, (_, i) => i),
+              frameRate: skeletonConfig.idle.fps,
+              loop: skeletonConfig.idle.loop,
+              columns: skeletonConfig.idle.cols,
+            },
+          };
+          
+          const attackState: AnimationState = {
+            name: 'attack',
+            config: {
+              frameWidth: skeletonAttackImg.width / skeletonConfig.attack!.cols,
+              frameHeight: skeletonAttackImg.height / skeletonConfig.attack!.rows,
+              frameSequence: Array.from({ length: skeletonConfig.attack!.frameCount }, (_, i) => i),
+              frameRate: skeletonConfig.attack!.fps,
+              loop: skeletonConfig.attack!.loop,
+              columns: skeletonConfig.attack!.cols,
+            },
+          };
+          
+          const idleAnim = new SpriteAnimation(skeletonIdleImg, idleState);
+          const attackAnim = new SpriteAnimation(skeletonAttackImg, attackState);
           
           if (!this.enemyAnimations) {
             this.enemyAnimations = new Map();
@@ -390,7 +414,20 @@ export class GameEngine {
       ghostIdleImg.src = ghostConfig.idle.path;
       
       ghostIdleImg.onload = () => {
-        const idleAnim = new SpriteAnimation(ghostIdleImg, ghostConfig.idle);
+        // 转换为AnimationState格式
+        const idleState: AnimationState = {
+          name: 'idle',
+          config: {
+            frameWidth: ghostIdleImg.width / ghostConfig.idle.cols,
+            frameHeight: ghostIdleImg.height / ghostConfig.idle.rows,
+            frameSequence: Array.from({ length: ghostConfig.idle.frameCount }, (_, i) => i),
+            frameRate: ghostConfig.idle.fps,
+            loop: ghostConfig.idle.loop,
+            columns: ghostConfig.idle.cols,
+          },
+        };
+        
+        const idleAnim = new SpriteAnimation(ghostIdleImg, idleState);
         
         if (!this.enemyAnimations) {
           this.enemyAnimations = new Map();
@@ -706,7 +743,7 @@ export class GameEngine {
           (enemy.y - this.player.y) ** 2
         );
         
-        const attackRange = 150; // 攻击范围
+        const attackRange = 100; // 攻击范围（减少到100像素防止围殴）
         
         // 如果正在攻击
         if (enemy.isAttacking) {
@@ -730,7 +767,7 @@ export class GameEngine {
               enemy.animationState = 'idle';
               enemy.isAttacking = false;
               enemy.hasDealtDamage = false;
-              enemy.attackCooldown = 120; // 重置冷却
+              enemy.attackCooldown = 180; // 重置冷却（3秒，降低攻击频率）
               attackAnim.reset(); // 重置攻击动画
             }
           }
@@ -1009,7 +1046,7 @@ export class GameEngine {
     if (enemyType === 'skeleton' && this.enemyAnimations.has('skeleton')) {
       enemy.spriteAnimation = this.enemyAnimations.get('skeleton');
       enemy.animationState = 'idle';
-      enemy.attackCooldown = 120; // 2秒攻击冷却（60fps）
+      enemy.attackCooldown = 180; // 3秒攻击冷却（60fps，降低攻击频率）
       enemy.isAttacking = false;
       enemy.attackHitFrame = 3; // 在第3帧（剑劈下的一帧）判定伤害
       enemy.hasDealtDamage = false;
@@ -1431,9 +1468,9 @@ export class GameEngine {
   }
 
   private loseLife(): void {
-    // 无敌帧机制：受伤后500ms内不会再次受伤
+    // 无敌帧机制：受伤后1500ms内不会再次受伤（防止多个骷髅兵围殴）
     const now = Date.now();
-    if (now - this.lastLoseLifeTime < 500) {
+    if (now - this.lastLoseLifeTime < 1500) {
       return; // 在无敌帧内，忽略伤害
     }
     
@@ -1446,7 +1483,7 @@ export class GameEngine {
     
     // 设置无敌状态和视觉反馈
     this.player.isInvincible = true;
-    this.player.invincibleEndTime = now + 500; // 500ms无敌时间
+    this.player.invincibleEndTime = now + 1500; // 1500ms无敌时间
     
     // 触发受伤动画
     if (this.player.spriteAnimation && this.player.spriteAnimation.hurt) {
@@ -1588,8 +1625,8 @@ export class GameEngine {
         let yOffsetPercent = 0.15; // 默认Y偏移百分比
         
         if (enemy.type === 'skeleton') {
-          targetHeight = 360; // 骨骼兵：与主角一致
-          yOffsetPercent = 0.15; // 向下偏移15%
+          targetHeight = 240; // 骷髅兵：与主角大小相似（240px）
+          yOffsetPercent = 0.1; // 向下偏移10%
         } else if (enemy.type === 'ghost') {
           targetHeight = 200; // 幽灵：比主角小
           yOffsetPercent = 0; // 居中对齐
@@ -1604,7 +1641,13 @@ export class GameEngine {
         this.ctx.scale(-1, 1);
         
         // 根据当前动画状态渲某
-        const currentAnim = enemy.spriteAnimation[enemy.animationState];
+        let currentAnim = null;
+        if (enemy.animationState === 'idle') {
+          currentAnim = enemy.spriteAnimation.idle;
+        } else if (enemy.animationState === 'attack' && enemy.spriteAnimation.attack) {
+          currentAnim = enemy.spriteAnimation.attack;
+        }
+        
         if (currentAnim) {
           const yOffset = (frameHeight * spriteScale) * yOffsetPercent;
           
