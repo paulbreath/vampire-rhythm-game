@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Blood Rhapsody</string>
+    <string name="title_activity_main">Blood Rhapsody</string>
+    <string name="package_name">com.vamprhythm.game</string>
+    <string name="custom_url_scheme">com.vamprhythm.game</string>
+</resources>
