@@ -156,6 +156,20 @@ export class SpriteAnimation {
   }
   
   /**
+   * 获取当前动画的帧宽度
+   */
+  public getFrameWidth(): number {
+    return this.currentState.config.frameWidth;
+  }
+  
+  /**
+   * 获取当前动画的帧高度
+   */
+  public getFrameHeight(): number {
+    return this.currentState.config.frameHeight;
+  }
+  
+  /**
    * 检查动画是否完成（仅对非循环动画有效）
    */
   public isAnimationFinished(): boolean {

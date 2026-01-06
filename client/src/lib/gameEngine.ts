@@ -1643,30 +1643,7 @@ export class GameEngine {
         this.ctx.save();
         this.ctx.globalAlpha = hitAlpha;
         
-        const frameWidth = 344; // 单帧宽度
-        const frameHeight = 384; // 单帧高度
-        
-        // 根据敌人类型设置不同的尺寸和偏移
-        let targetHeight = 360; // 默认高度
-        let yOffsetPercent = 0.15; // 默认Y偏移百分比
-        
-        if (enemy.type === 'skeleton') {
-          targetHeight = 150; // 骷髅兵：与幽灵高度接近（150px）
-          yOffsetPercent = 0.02; // 向下偏移2%
-        } else if (enemy.type === 'ghost') {
-          targetHeight = 200; // 幽灵：比主角小
-          yOffsetPercent = 0; // 居中对齐
-        }
-        
-        const spriteScale = (targetHeight / frameHeight) * hitScale;
-        
-        // 移动到敌人位置
-        this.ctx.translate(enemy.x, enemy.y + flyOffset);
-        
-        // 水平翻转（面向左侧）
-        this.ctx.scale(-1, 1);
-        
-        // 根据当前动画状态渲某
+        // 根据当前动画状态获取对应的动画
         let currentAnim = null;
         if (enemy.animationState === 'walk' && enemy.spriteAnimation.walk) {
           currentAnim = enemy.spriteAnimation.walk;
@@ -1677,6 +1654,30 @@ export class GameEngine {
         }
         
         if (currentAnim) {
+          // 从动画配置中获取实际帧尺寸
+          const frameWidth = currentAnim.getFrameWidth();
+          const frameHeight = currentAnim.getFrameHeight();
+          
+          // 根据敌人类型设置不同的尺寸和偏移
+          let targetHeight = 360; // 默认高度
+          let yOffsetPercent = 0.15; // 默认Y偏移百分比
+          
+          if (enemy.type === 'skeleton') {
+            targetHeight = 150; // 骷髅兵：与幽灵高度接近（150px）
+            yOffsetPercent = 0.02; // 向下偏移2%
+          } else if (enemy.type === 'ghost') {
+            targetHeight = 200; // 幽灵：比主角小
+            yOffsetPercent = 0; // 居中对齐
+          }
+          
+          const spriteScale = (targetHeight / frameHeight) * hitScale;
+          
+          // 移动到敌人位置
+          this.ctx.translate(enemy.x, enemy.y + flyOffset);
+          
+          // 水平翻转（面向左侧）
+          this.ctx.scale(-1, 1);
+          
           const yOffset = (frameHeight * spriteScale) * yOffsetPercent;
           
           currentAnim.render(
