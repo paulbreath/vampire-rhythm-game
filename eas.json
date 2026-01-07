@@ -9,27 +9,15 @@
       "distribution": "internal"
     },
     "preview": {
-      "node": "22.13.0",
-      "pnpm": "10.27.0",
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
-        "env": {
-          "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64",
-          "GRADLE_OPTS": "-Dorg.gradle.java.home=/usr/lib/jvm/java-17-openjdk-amd64"
-        }
+        "buildType": "apk"
       }
     },
     "production": {
-      "node": "22.13.0",
-      "pnpm": "10.27.0",
       "distribution": "store",
       "android": {
-        "buildType": "app-bundle",
-        "env": {
-          "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64",
-          "GRADLE_OPTS": "-Dorg.gradle.java.home=/usr/lib/jvm/java-17-openjdk-amd64"
-        }
+        "buildType": "app-bundle"
       }
     }
   }
