@@ -13,7 +13,8 @@
       "android": {
         "buildType": "apk",
         "env": {
-          "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64"
+          "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64",
+          "GRADLE_OPTS": "-Dorg.gradle.java.home=/usr/lib/jvm/java-17-openjdk-amd64"
         }
       }
     },
@@ -22,7 +23,8 @@
       "android": {
         "buildType": "app-bundle",
         "env": {
-          "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64"
+          "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64",
+          "GRADLE_OPTS": "-Dorg.gradle.java.home=/usr/lib/jvm/java-17-openjdk-amd64"
         }
       }
     }
