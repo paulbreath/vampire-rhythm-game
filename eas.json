@@ -9,6 +9,8 @@
       "distribution": "internal"
     },
     "preview": {
+      "node": "22.13.0",
+      "pnpm": "10.27.0",
       "distribution": "internal",
       "android": {
         "buildType": "apk",
@@ -19,6 +21,8 @@
       }
     },
     "production": {
+      "node": "22.13.0",
+      "pnpm": "10.27.0",
       "distribution": "store",
       "android": {
         "buildType": "app-bundle",
