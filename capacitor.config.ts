@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Blood Rhapsody',
   webDir: 'client/dist',
   server: {
-    url: 'https://3000-izrah8ksxvgw9hkmqj2ku-746ed23b.us2.manus.computer',
+    url: 'https://vampirerhythm.vip',
     cleartext: true
   }
 };
