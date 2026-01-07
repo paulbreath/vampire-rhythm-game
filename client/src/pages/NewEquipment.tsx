@@ -284,9 +284,14 @@ export default function NewEquipment() {
                   </p>
                 )}
 
-                {/* 已装备标记 */}
+                {/* 已装备/已获得标记 */}
                 {isEquipped && (
-                  <div className="absolute top-2 right-2 text-yellow-400 text-xl">
+                  <div className="absolute top-2 right-2 text-yellow-400 text-xl" title="Currently Equipped">
+                    ✓
+                  </div>
+                )}
+                {isUnlocked && !isEquipped && (
+                  <div className="absolute top-2 right-2 text-green-400 text-lg" title="Obtained">
                     ✓
                   </div>
                 )}
@@ -351,9 +356,14 @@ export default function NewEquipment() {
                   </p>
                 )}
 
-                {/* 已装备标记 */}
+                {/* 已装备/已获得标记 */}
                 {isEquipped && (
-                  <div className="absolute top-2 right-2 text-yellow-400 text-xl">
+                  <div className="absolute top-2 right-2 text-yellow-400 text-xl" title="Currently Equipped">
+                    ✓
+                  </div>
+                )}
+                {isUnlocked && !isEquipped && (
+                  <div className="absolute top-2 right-2 text-green-400 text-lg" title="Obtained">
                     ✓
                   </div>
                 )}
