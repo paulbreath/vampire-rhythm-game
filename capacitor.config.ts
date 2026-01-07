@@ -5,17 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Blood Rhapsody',
   webDir: 'client/dist',
   server: {
-    androidScheme: 'https',
+    url: 'https://3000-izrah8ksxvgw9hkmqj2ku-746ed23b.us2.manus.computer',
     cleartext: true
-  },
-  android: {
-    allowMixedContent: true,
-    webContentsDebuggingEnabled: true
-  },
-  plugins: {
-    SplashScreen: {
-      launchShowDuration: 0
-    }
   }
 };
 
