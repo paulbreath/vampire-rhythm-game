@@ -11,13 +11,19 @@
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "env": {
+          "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64"
+        }
       }
     },
     "production": {
       "distribution": "store",
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "env": {
+          "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64"
+        }
       }
     }
   }
