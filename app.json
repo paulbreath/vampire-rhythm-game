@@ -2,7 +2,7 @@
   "expo": {
     "name": "Blood Rhapsody",
     "slug": "vampire-rhythm-game",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "landscape",
     "icon": "./client/public/icon.png",
     "userInterfaceStyle": "dark",
@@ -27,7 +27,7 @@
       "permissions": [
         "android.permission.INTERNET"
       ],
-      "versionCode": 1
+      "versionCode": 2
     },
     "web": {
       "favicon": "./client/public/favicon.ico"
