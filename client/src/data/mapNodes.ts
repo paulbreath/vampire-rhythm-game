@@ -57,7 +57,7 @@ export const MAP_NODES: Record<string, MapNode> = {
     nameEn: 'Bell Tower',
     chapter: 1,
     theme: '高耸的钟楼，齿轮和钟摆',
-    music: 'witches-parade-assassin',
+    music: 'blood-moon-rises',
     position: { x: 15, y: 25 },
     connections: ['abandoned-church', 'misty-graveyard'],
     unlockConditions: ['abandoned-church'],
