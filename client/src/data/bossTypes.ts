@@ -13,15 +13,15 @@
 import { type SizeType } from './sizeConfig';
 
 export type BossType =
-  | 'demon-twin-king'
-  | 'death-reaper-priest'
-  | 'stone-golem-guardian'
-  | 'lich-king'
+  | 'fallen-priest'
+  | 'bat-king'
+  | 'crypt-guardian'
   | 'graveyard-lord'
+  | 'zombie-king'
   | 'werewolf-alpha'
-  | 'dark-knight-commander'
-  | 'ancient-sage'
-  | 'succubus-queen'
+  | 'castle-commander'
+  | 'ancient-librarian'
+  | 'succubus'
   | 'vampire-king';
 
 export interface BossConfig {
@@ -51,33 +51,11 @@ export interface BossConfig {
  * 10个BOSS配置数据
  */
 export const BOSS_TYPES: Record<BossType, BossConfig> = {
-  'demon-twin-king': {
-    id: 'demon-twin-king',
-    type: 'demon-twin-king',
-    name: 'Demon Twin King',
-    nameZh: '恶魔双头王',
-    speed: 1.5,
-    sizeType: 'small',
-    color: '#8B00FF',
-    health: 4500,
-    damage: 25,
-    guardCount: 2,
-    description: '拥有双头的紫色恶魔王，力量强大',
-    spriteSheet: {
-      idle: '/boss-characters/boss-bat-king-render-pixel-processed.png',
-      attack: '/boss-characters/boss-bat-king-render-pixel-processed.png',
-      hurt: '/boss-characters/boss-bat-king-render-pixel-processed.png',
-      death: '/boss-characters/boss-bat-king-render-pixel-processed.png',
-    },
-    summonInterval: 7000,
-    summonCount: 2,
-  },
-
-  'death-reaper-priest': {
-    id: 'death-reaper-priest',
-    type: 'death-reaper-priest',
-    name: 'Death Reaper Priest',
-    nameZh: '死神牧师',
+  'fallen-priest': {
+    id: 'fallen-priest',
+    type: 'fallen-priest',
+    name: 'Fallen Priest',
+    nameZh: '堕落牧师',
     speed: 1.0,
     sizeType: 'small',
     color: '#4B0082',
@@ -95,11 +73,33 @@ export const BOSS_TYPES: Record<BossType, BossConfig> = {
     summonCount: 1,
   },
 
-  'stone-golem-guardian': {
-    id: 'stone-golem-guardian',
-    type: 'stone-golem-guardian',
-    name: 'Stone Golem Guardian',
-    nameZh: '石像守卫',
+  'bat-king': {
+    id: 'bat-king',
+    type: 'bat-king',
+    name: 'Bat King',
+    nameZh: '蝙蝠之王',
+    speed: 1.5,
+    sizeType: 'small',
+    color: '#8B00FF',
+    health: 4500,
+    damage: 25,
+    guardCount: 2,
+    description: '拥有双头的紫色恶魔王，力量强大',
+    spriteSheet: {
+      idle: '/boss-characters/boss-bat-king-render-pixel-processed.png',
+      attack: '/boss-characters/boss-bat-king-render-pixel-processed.png',
+      hurt: '/boss-characters/boss-bat-king-render-pixel-processed.png',
+      death: '/boss-characters/boss-bat-king-render-pixel-processed.png',
+    },
+    summonInterval: 7000,
+    summonCount: 2,
+  },
+
+  'crypt-guardian': {
+    id: 'crypt-guardian',
+    type: 'crypt-guardian',
+    name: 'Crypt Guardian',
+    nameZh: '墓穴守卫',
     speed: 0.8,
     sizeType: 'medium',
     color: '#708090',
@@ -117,11 +117,11 @@ export const BOSS_TYPES: Record<BossType, BossConfig> = {
     summonCount: 2,
   },
 
-  'lich-king': {
-    id: 'lich-king',
-    type: 'lich-king',
-    name: 'Lich King',
-    nameZh: '巫妖王',
+  'graveyard-lord': {
+    id: 'graveyard-lord',
+    type: 'graveyard-lord',
+    name: 'Graveyard Lord',
+    nameZh: '墓地领主',
     speed: 1.2,
     sizeType: 'medium',
     color: '#00FF00',
@@ -139,11 +139,11 @@ export const BOSS_TYPES: Record<BossType, BossConfig> = {
     summonCount: 3,
   },
 
-  'graveyard-lord': {
-    id: 'graveyard-lord',
-    type: 'graveyard-lord',
-    name: 'Graveyard Lord',
-    nameZh: '墓地领主',
+  'zombie-king': {
+    id: 'zombie-king',
+    type: 'zombie-king',
+    name: 'Zombie King',
+    nameZh: '僵尸之王',
     speed: 1.0,
     sizeType: 'large',
     color: '#2F4F2F',
@@ -183,11 +183,11 @@ export const BOSS_TYPES: Record<BossType, BossConfig> = {
     summonCount: 4,
   },
 
-  'dark-knight-commander': {
-    id: 'dark-knight-commander',
-    type: 'dark-knight-commander',
-    name: 'Dark Knight Commander',
-    nameZh: '黑骑士统帅',
+  'castle-commander': {
+    id: 'castle-commander',
+    type: 'castle-commander',
+    name: 'Castle Commander',
+    nameZh: '城堡统帅',
     speed: 1.3,
     sizeType: 'large',
     color: '#2F4F4F',
@@ -205,11 +205,11 @@ export const BOSS_TYPES: Record<BossType, BossConfig> = {
     summonCount: 4,
   },
 
-  'ancient-sage': {
-    id: 'ancient-sage',
-    type: 'ancient-sage',
-    name: 'Ancient Sage',
-    nameZh: '古代贤者',
+  'ancient-librarian': {
+    id: 'ancient-librarian',
+    type: 'ancient-librarian',
+    name: 'Ancient Librarian',
+    nameZh: '古代图书管理员',
     speed: 1.0,
     sizeType: 'large',
     color: '#4682B4',
@@ -227,9 +227,9 @@ export const BOSS_TYPES: Record<BossType, BossConfig> = {
     summonCount: 5,
   },
 
-  'succubus-queen': {
-    id: 'succubus-queen',
-    type: 'succubus-queen',
+  'succubus': {
+    id: 'succubus',
+    type: 'succubus',
     name: 'Succubus Queen',
     nameZh: '魅魔女王',
     speed: 1.5,
@@ -277,15 +277,15 @@ export const BOSS_TYPES: Record<BossType, BossConfig> = {
  */
 export function getBossTypeByStage(stage: number): BossType | null {
   const bossStages: Record<number, BossType> = {
-    3: 'demon-twin-king',
-    6: 'death-reaper-priest',
-    9: 'stone-golem-guardian',
-    12: 'lich-king',
-    15: 'graveyard-lord',
+    3: 'fallen-priest',
+    6: 'bat-king',
+    9: 'crypt-guardian',
+    12: 'graveyard-lord',
+    15: 'zombie-king',
     18: 'werewolf-alpha',
-    21: 'dark-knight-commander',
-    24: 'ancient-sage',
-    27: 'succubus-queen',
+    21: 'castle-commander',
+    24: 'ancient-librarian',
+    27: 'succubus',
     30: 'vampire-king',
   };
 

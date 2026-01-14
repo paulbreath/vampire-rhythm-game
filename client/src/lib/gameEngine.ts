@@ -1471,8 +1471,9 @@ export class GameEngine {
     
     const boss = this.bossConfig;
     const bossHeight = getBossSize(boss.sizeType); // getBossSize返回number
-    const x = this.canvas.width + bossHeight;
-    const y = this.canvas.height / 2; // BOSS生成在画面中间
+    // BOSS生成在右上角,面向左(根据用户偏好)
+    const x = this.canvas.width - 200; // 右上角X坐标,留出一些边距
+    const y = 150; // 右上角Y坐标,留出一些边距
     
     // 使用BOSS静态图（像素风格战斗图）
     const bossImage = this.enemyImages.get(boss.type as any);
