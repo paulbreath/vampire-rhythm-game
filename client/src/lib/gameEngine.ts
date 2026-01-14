@@ -2778,7 +2778,7 @@ export class GameEngine {
     // 绘制主角（在左侧，与BOSS对称）
     if (this.playerImage && this.playerImage.complete) {
       // 主角位置：左上角，与BOSS对称
-      const targetHeight = boss ? boss.size * 0.65 : 400; // 目标高度与BOSS相同
+      const targetHeight = boss ? boss.size * 0.85 : 400; // 主角高度为BOSS的85%，增强视觉存在感
       
       // 保持原始宽高比，不拉伸
       const aspectRatio = this.playerImage.width / this.playerImage.height;
