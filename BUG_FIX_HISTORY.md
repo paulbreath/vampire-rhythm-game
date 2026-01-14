@@ -170,3 +170,56 @@ export const BOSS_SIZES: Record<SizeType, SizeConfig> = {
 **状态**: ✅ 已修复,待验证
 
 ---
+
+### BUG #004: BOSS图像路径错误 (2026-01-14)
+
+**问题描述**:
+- 第15关(zombie-king)、第18关(werewolf-alpha)、第27关(succubus)的BOSS图像无法加载
+- 配置文件中使用的图像文件名与实际文件名不匹配
+
+**根本原因**:
+- bossTypes.ts中配置的图像路径错误
+- zombie-king使用了不存在的"boss-shadow-dragon"
+- werewolf-alpha使用了不存在的"boss-alchemist-ghost"
+- succubus使用了不存在的"boss-succubus-queen"(实际文件名是"boss-succubus")
+
+**错误的配置**:
+```typescript
+// zombie-king (关卡15)
+spriteSheet: {
+  idle: '/boss-characters/boss-shadow-dragon-render-pixel-processed.png',
+  ...
+}
+
+// werewolf-alpha (关卡18)
+spriteSheet: {
+  idle: '/boss-characters/boss-alchemist-ghost-render-pixel-processed.png',
+  ...
+}
+
+// succubus (关卡27)
+spriteSheet: {
+  idle: '/boss-characters/boss-succubus-queen-render-pixel-processed.png',
+  ...
+}
+```
+
+**修复方法**:
+1. 修改 `client/src/data/bossTypes.ts`:
+   - zombie-king: 改为 `boss-zombie-king-render-pixel-processed.png`
+   - werewolf-alpha: 改为 `boss-werewolf-alpha-render-pixel-processed.png`
+   - succubus: 改为 `boss-succubus-render-pixel-processed.png`
+
+**修改的文件**:
+- `client/src/data/bossTypes.ts` (第155-159行, 第177-181行, 第243-247行)
+
+**验证方法**:
+- 进入关卡15,检查zombie-king是否正常显示
+- 进入关卡18,检查werewolf-alpha是否正常显示
+- 进入关卡27,检查succubus是否正常显示
+
+**Commit**: (待提交)
+
+**状态**: ✅ 已修复,待验证
+
+---
