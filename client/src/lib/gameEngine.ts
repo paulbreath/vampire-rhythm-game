@@ -736,6 +736,7 @@ export class GameEngine {
     this.combo = 0;
     this.lives = this.maxLives;
     this.enemies = [];
+    this.bossSpawned = false; // 重置bossSpawned标志，让update()重新生成BOSS
     this.swipeTrail = [];
     this.lastSpawnTime = Date.now();
     
