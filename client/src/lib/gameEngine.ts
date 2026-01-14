@@ -2699,13 +2699,9 @@ export class GameEngine {
     
     // 绘制BOSS（在背景之上，轨道旁边）- 音乐响起后10秒才显示
     const boss = this.enemies.find(e => e.isBoss);
-    const musicStartTime = this.rhythmBossSystem.getMusicStartTime();
-    const currentTime = Date.now();
-    const bossAppearDelay = 3000; // 3秒延迟（优化加载速度）
-    const shouldShowBoss = musicStartTime === 0 || (currentTime - musicStartTime >= bossAppearDelay);
     
     // BOSS渲染：使用静态图，不使用frameAnimation
-    if (boss && boss.image && boss.image.complete && shouldShowBoss) {
+    if (boss && boss.image && boss.image.complete) {
       // BOSS位置：右上角，不遮挡轨道
       // 保持BOSS原始纵横比（279×500），不压扁
       const bossHeight = boss.size * 1.3; // BOSS高度，比主角高但不过大
@@ -2769,8 +2765,8 @@ export class GameEngine {
       );
     }
     
-    // 绘制主角（在左侧，与BOSS对称）- 音乐响起后10秒才显示
-    if (shouldShowBoss && this.playerImage && this.playerImage.complete) {
+    // 绘制主角（在左侧，与BOSS对称）
+    if (this.playerImage && this.playerImage.complete) {
       // 主角位置：左上角，与BOSS对称
       const targetHeight = boss ? boss.size * 0.65 : 400; // 目标高度与BOSS相同
       

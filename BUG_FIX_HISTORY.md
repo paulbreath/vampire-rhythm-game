@@ -279,3 +279,41 @@ const aspectRatio = 614 / 1100; // 错误的宽高比
 **状态**: ✅ 已修复,待验证
 
 ---
+
+### BUG #006: BOSS和主角闪现消失问题 (2026-01-14)
+
+**问题描述**:
+- 进入BOSS关卡后,主角和BOSS会出现一下,然后突然消失,几秒后又重新出现
+- 影响所有BOSS关卡的游戏体验
+
+**根本原因**:
+- gameEngine.ts中存在延迟显示逻辑:
+  ```typescript
+  const bossAppearDelay = 3000; // 3秒延迟
+  const shouldShowBoss = musicStartTime === 0 || (currentTime - musicStartTime >= bossAppearDelay);
+  ```
+- 这个逻辑导致BOSS和主角在音乐开始后3秒内不显示
+- 但图像已经加载完成,导致出现"闪现-消失-再出现"的问题
+
+**修复方法**:
+1. 删除延迟显示逻辑
+2. 修改 `client/src/lib/gameEngine.ts`:
+   - 删除 `musicStartTime`、`currentTime`、`bossAppearDelay`、`shouldShowBoss` 相关代码
+   - 将 `if (boss && boss.image && boss.image.complete && shouldShowBoss)` 改为 `if (boss && boss.image && boss.image.complete)`
+   - 将 `if (shouldShowBoss && this.playerImage && this.playerImage.complete)` 改为 `if (this.playerImage && this.playerImage.complete)`
+
+**修改的文件**:
+- `client/src/lib/gameEngine.ts` (第2701-2705行, 第2772行)
+
+**验证方法**:
+- 进入任意BOSS关卡
+- 检查BOSS和主角是否从游戏开始就一直显示,没有闪现或消失
+
+**用户要求**:
+- BOSS和主角一开始就出现,不需要延迟显示
+
+**Commit**: (待提交)
+
+**状态**: ✅ 已修复,待验证
+
+---
