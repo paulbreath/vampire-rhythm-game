@@ -2113,8 +2113,8 @@ export class GameEngine {
           enemy.image,
           -enemy.size,
           -enemy.size,
-          enemy.size * 2,
-          enemy.size * 2
+          enemy.size * 1.5,
+          enemy.size * 1.5
         );
         
         this.ctx.restore();
@@ -2707,9 +2707,9 @@ export class GameEngine {
     // BOSS渲染：使用静态图，不使用frameAnimation
     if (boss && boss.image && boss.image.complete && shouldShowBoss) {
       // BOSS位置：右上角，不遮挡轨道
-      // 保持BOSS原始纵横比（614×1100），不压扁
+      // 保持BOSS原始纵横比（279×500），不压扁
       const bossHeight = boss.size * 1.3; // BOSS高度，比主角高但不过大
-      const aspectRatio = 614 / 1100; // 原始图片宽高比
+      const aspectRatio = 279 / 500; // 实际BOSS图片宽高比 (279x500)
       const bossWidth = bossHeight * aspectRatio;
       
       const bossX = this.canvas.width - bossWidth / 2 - 20; // 距离右边缐20px

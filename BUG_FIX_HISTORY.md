@@ -223,3 +223,59 @@ spriteSheet: {
 **状态**: ✅ 已修复,待验证
 
 ---
+
+### BUG #005: BOSS渲染尺寸过大 (2026-01-14)
+
+**问题描述**:
+- 关卡15、18、21、27的BOSS在游戏中显示过大,超过了500px高度限制
+- 用户要求所有BOSS渲染高度不超过500px
+
+**根本原因**:
+- BOSS渲染使用公式: `bossHeight = boss.size * 1.3`
+- large类型配置为500px,渲染后 = 500 * 1.3 = 650px,超过限制
+- 宽高比硬编码为614/1100,与实际图像279/500不符
+
+**旧的配置**:
+```typescript
+// sizeConfig.ts
+BOSS_SIZES: {
+  large: { height: 500, scale: 1.39 }
+}
+
+// gameEngine.ts
+const aspectRatio = 614 / 1100; // 错误的宽高比
+```
+
+**修复方法**:
+1. 修改 `client/src/data/sizeConfig.ts`:
+   - large: height从500改为385 (385 * 1.3 = 500px)
+   - medium: height从430改为330 (330 * 1.3 = 429px)
+   - 更新scale值以匹配新高度
+
+2. 修改 `client/src/lib/gameEngine.ts`:
+   - 修正BOSS宽高比从614/1100改为279/500 (实际图像尺寸)
+   - 保持渲染公式 `boss.size * 1.3` 不变(用户确认以此为准)
+
+3. 修改 `client/src/lib/gameEngine.ts`:
+   - 将普通敌人渲染的 `enemy.size * 2` 改为 `enemy.size * 1.5`
+
+**修改的文件**:
+- `client/src/data/sizeConfig.ts` (第23-27行)
+- `client/src/lib/gameEngine.ts` (第2116-2117行, 第2710-2713行)
+
+**验证方法**:
+- 进入关卡15,检查zombie-king渲染高度是否≤500px
+- 进入关卡18,检查werewolf-alpha渲染高度是否≤500px
+- 进入关卡21,检查castle-commander渲染高度是否≤500px
+- 进入关卡27,检查succubus渲染高度是否≤500px
+
+**计算公式**:
+- 渲染高度 = boss.size * 1.3
+- 要求: 渲染高度 ≤ 500px
+- 因此: boss.size ≤ 500 / 1.3 ≈ 385px
+
+**Commit**: (待提交)
+
+**状态**: ✅ 已修复,待验证
+
+---
