@@ -21,9 +21,9 @@ export const ENEMY_SIZES: Record<SizeType, SizeConfig> = {
 };
 
 export const BOSS_SIZES: Record<SizeType, SizeConfig> = {
-  small: { height: 480, scale: 1.33 },   // 主角1.33倍
-  medium: { height: 600, scale: 1.67 },  // 主角1.67個
-  large: { height: 720, scale: 2.0 },    // 主角2倍
+  small: { height: 360, scale: 1.0 },    // 主角1.0倍
+  medium: { height: 430, scale: 1.19 },  // 主角1.19倍
+  large: { height: 500, scale: 1.39 },   // 主角1.39倍
 };
 
 export function getEnemySize(sizeType: SizeType): number {

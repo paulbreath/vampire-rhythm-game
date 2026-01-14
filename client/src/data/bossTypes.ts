@@ -6,8 +6,8 @@
  * - 战斗属性（血量、攻击力、护卫数量）
  * - 视觉属性（颜色、动画）
  * 
- * 参考：CHARACTER_SIZE_DESIGN.md
- * 尺寸梯度：BOSS是主角的2-3倍（720-1000px高度）
+ * 尺寸规则：所有BOSS高度不超过500px
+ * 注：旧公式“BOSS是主角的2-3倍（720-1000px）”已作废 (2026-01-14)
  */
 
 import { type SizeType } from './sizeConfig';
@@ -233,7 +233,7 @@ export const BOSS_TYPES: Record<BossType, BossConfig> = {
     name: 'Succubus Queen',
     nameZh: '魅魔女王',
     speed: 1.5,
-    sizeType: 'xlarge',
+    sizeType: 'large',
     color: '#9370DB',
     health: 8000,
     damage: 60,
@@ -255,7 +255,7 @@ export const BOSS_TYPES: Record<BossType, BossConfig> = {
     name: 'Vampire King',
     nameZh: '吸血鬼之王',
     speed: 1.5,
-    sizeType: 'xlarge',
+    sizeType: 'large',
     color: '#8B0000',
     health: 10000,
     damage: 80,
