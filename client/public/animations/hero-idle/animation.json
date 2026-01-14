@@ -1,0 +1,8 @@
+{
+  "frameCount": 8,
+  "frameWidth": 688,
+  "frameHeight": 768,
+  "fps": 10,
+  "loop": true,
+  "name": "hero-idle"
+}

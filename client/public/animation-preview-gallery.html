@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动画预览图库 - 吸血鬼节奏游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a0033 0%, #330033 50%, #1a0033 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #ff3366;
+            text-shadow: 0 0 20px #ff3366;
+            margin-bottom: 10px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 2em;
+            color: #ff3366;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 51, 102, 0.2);
+            border-left: 5px solid #ff3366;
+            border-radius: 5px;
+        }
+
+        .animation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .animation-card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #ff3366;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+
+        .animation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 51, 102, 0.3);
+            border-color: #ff5588;
+        }
+
+        .animation-card h3 {
+            color: #ff3366;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .preview-container {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+
+        .preview-img {
+            width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+            border-radius: 5px;
+        }
+
+        .animation-info {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        .status.success {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+
+        .status.error {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff6666;
+            border: 1px solid #ff6666;
+        }
+
+        .boss-states {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .state-card {
+            background: rgba(255, 51, 102, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 51, 102, 0.3);
+        }
+
+        .state-card h4 {
+            color: #ff5588;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .state-preview {
+            width: 100%;
+            height: auto;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🦇 动画预览图库</h1>
+        <p>所有序列帧动画切割效果预览</p>
+    </div>
+
+    <!-- BOSS动画区域 -->
+    <div class="section">
+        <h2 class="section-title">BOSS动画 (10个BOSS × 4状态 = 40个动画)</h2>
+        <div id="bossGrid" class="animation-grid"></div>
+    </div>
+
+    <!-- 小怪动画区域 -->
+    <div class="section">
+        <h2 class="section-title">小怪动画 (35个动画)</h2>
+        <div id="enemyGrid" class="animation-grid"></div>
+    </div>
+
+    <script>
+        const BOSSES = [
+            { id: 'fallen-priest', name: '堕落牧师' },
+            { id: 'bat-king', name: '蝙蝠王' },
+            { id: 'crypt-guardian', name: '地穴守卫' },
+            { id: 'graveyard-lord', name: '墓地领主' },
+            { id: 'zombie-king', name: '僵尸王' },
+            { id: 'werewolf-alpha', name: '狼人首领' },
+            { id: 'castle-commander', name: '城堡指挥官' },
+            { id: 'ancient-librarian', name: '古老图书管理员' },
+            { id: 'succubus', name: '魅魔' },
+            { id: 'vampire-king', name: '吸血鬼王' },
+        ];
+
+        const STATES = [
+            { id: 'idle', name: '待机', color: '#00ff88' },
+            { id: 'attack', name: '攻击', color: '#ff3366' },
+            { id: 'hurt', name: '受伤', color: '#ffaa00' },
+            { id: 'death', name: '死亡', color: '#8800ff' },
+        ];
+
+        async function loadBossAnimations() {
+            const grid = document.getElementById('bossGrid');
+
+            for (const boss of BOSSES) {
+                const card = document.createElement('div');
+                card.className = 'animation-card';
+
+                let statesHTML = '';
+                for (const state of STATES) {
+                    const animPath = `boss-${boss.id}-${state.id}`;
+                    const previewPath = `/animations/${animPath}/preview.png`;
+                    
+                    statesHTML += `
+                        <div class="state-card">
+                            <h4 style="color: ${state.color}">${state.name}</h4>
+                            <img src="${previewPath}" 
+                                 class="state-preview" 
+                                 alt="${boss.name} - ${state.name}"
+                                 onerror="this.parentElement.innerHTML='<div class=\\'status error\\'>加载失败</div>'">
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <h3>${boss.name} (${boss.id})</h3>
+                    <div class="boss-states">
+                        ${statesHTML}
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            }
+        }
+
+        async function loadEnemyAnimations() {
+            const grid = document.getElementById('enemyGrid');
+
+            // 从服务器获取所有enemy动画目录
+            const enemyAnimations = [
+                '01-corrupted-believer',
+                '01-evil-nun',
+                '02-tower-ghost (1)',
+                '02-tower-ghost',
+                '02-vampire-bat',
+                '03-crawling-skeleton (1)',
+                '03-crawling-skeleton',
+                '03-crypt-zombie',
+                '04-corpse (1)',
+                '04-corpse',
+                '04-graveyard-wraith (1)',
+                '04-graveyard-wraith',
+                '05-mummy (1)',
+                '05-mummy',
+                '05-skeleton-warrior-new',
+                '05-skeleton-warrior',
+                '06-cursed-wolf',
+                '06-tree-demon (1)',
+                '06-tree-demon',
+                '07-armor-ghost (1)',
+                '07-armor-ghost',
+                '07-vampire-guard (1)',
+                '07-vampire-guard (2)',
+                '07-vampire-guard',
+                '08-flying-book (1)',
+                '08-flying-book',
+                '08-ink-demon (1)',
+                '08-ink-demon',
+                '09-charm-rose',
+                '09-lesser-succubus',
+                '10-blood-servant (1)',
+                '10-blood-servant',
+                '10-elite-vampire',
+                'bomb-bat (1)',
+                'bomb-bat',
+            ];
+
+            for (const enemyId of enemyAnimations) {
+                const card = document.createElement('div');
+                card.className = 'animation-card';
+
+                const animPath = `enemy-${enemyId}`;
+                const previewPath = `/animations/${animPath}/preview.png`;
+
+                card.innerHTML = `
+                    <h3>Enemy: ${enemyId}</h3>
+                    <div class="preview-container">
+                        <img src="${previewPath}" 
+                             class="preview-img" 
+                             alt="Enemy ${enemyId}"
+                             onerror="this.parentElement.innerHTML='<div class=\\'status error\\'>加载失败</div>'">
+                    </div>
+                    <div class="animation-info">
+                        <span class="status success">✓ 已生成</span>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            }
+        }
+
+        window.addEventListener('load', () => {
+            loadBossAnimations();
+            loadEnemyAnimations();
+        });
+    </script>
+</body>
+</html>

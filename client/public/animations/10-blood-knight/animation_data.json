@@ -1,0 +1,174 @@
+{
+  "meta": {
+    "app": "SpriteSheetSplitter",
+    "version": "1.0",
+    "image": "enemy-10-blood-knight.png",
+    "size": {
+      "w": 2752,
+      "h": 1536
+    },
+    "scale": 1
+  },
+  "frames": {
+    "frame_0.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "sourceSize": {
+        "w": 688,
+        "h": 768
+      }
+    },
+    "frame_1.png": {
+      "frame": {
+        "x": 688,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "sourceSize": {
+        "w": 688,
+        "h": 768
+      }
+    },
+    "frame_2.png": {
+      "frame": {
+        "x": 1376,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "sourceSize": {
+        "w": 688,
+        "h": 768
+      }
+    },
+    "frame_3.png": {
+      "frame": {
+        "x": 2064,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "sourceSize": {
+        "w": 688,
+        "h": 768
+      }
+    },
+    "frame_4.png": {
+      "frame": {
+        "x": 0,
+        "y": 768,
+        "w": 688,
+        "h": 768
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "sourceSize": {
+        "w": 688,
+        "h": 768
+      }
+    },
+    "frame_5.png": {
+      "frame": {
+        "x": 688,
+        "y": 768,
+        "w": 688,
+        "h": 768
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "sourceSize": {
+        "w": 688,
+        "h": 768
+      }
+    },
+    "frame_6.png": {
+      "frame": {
+        "x": 1376,
+        "y": 768,
+        "w": 688,
+        "h": 768
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "sourceSize": {
+        "w": 688,
+        "h": 768
+      }
+    },
+    "frame_7.png": {
+      "frame": {
+        "x": 2064,
+        "y": 768,
+        "w": 688,
+        "h": 768
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 688,
+        "h": 768
+      },
+      "sourceSize": {
+        "w": 688,
+        "h": 768
+      }
+    }
+  }
+}

@@ -1,0 +1,1511 @@
+{
+  "metadata": {
+    "title": "Crimson Cathedral Waltz",
+    "artist": "AI Composer",
+    "bpm": 120,
+    "duration": 275,
+    "difficulty": "normal"
+  },
+  "notes": [
+    {
+      "time": 2.02,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 2.85,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 3.88,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 4.75,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 5.51,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 6.55,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 7.38,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 8.28,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 9.18,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 10.1,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 10.97,
+      "type": "bomb",
+      "lane": 3
+    },
+    {
+      "time": 11.93,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 12.88,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 13.76,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 14.72,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 15.48,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 16.46,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 17.28,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 18.32,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 19.08,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 20.03,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 21.07,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 21.82,
+      "type": "bomb",
+      "lane": 3
+    },
+    {
+      "time": 22.84,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 23.66,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 24.55,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 25.46,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 26.31,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 27.36,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 28.25,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 29.09,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 30.1,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 30.99,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 31.81,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 32.69,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 33.54,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 34.42,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 35.36,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 36.3,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 37.27,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 38.11,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 38.96,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 39.84,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 40.76,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 41.7,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 42.63,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 43.53,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 44.48,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 45.42,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 46.31,
+      "type": "bomb",
+      "lane": 4
+    },
+    {
+      "time": 47.09,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 48.13,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 49.03,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 49.96,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 50.75,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 51.71,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 52.56,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 53.45,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 54.48,
+      "type": "bomb",
+      "lane": 1
+    },
+    {
+      "time": 55.24,
+      "type": "bomb",
+      "lane": 4
+    },
+    {
+      "time": 56.12,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 57.06,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 57.98,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 58.89,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 59.8,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 60.68,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 61.69,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 62.59,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 63.37,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 64.32,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 65.18,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 66.11,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 67.06,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 67.95,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 68.83,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 69.71,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 70.6,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 71.48,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 72.46,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 73.41,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 74.21,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 75.11,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 76.14,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 77.01,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 77.91,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 78.77,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 79.67,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 80.58,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 81.5,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 82.45,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 83.26,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 84.26,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 85.07,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 86.04,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 86.86,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 87.86,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 88.73,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 89.63,
+      "type": "bomb",
+      "lane": 4
+    },
+    {
+      "time": 90.46,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 91.41,
+      "type": "bomb",
+      "lane": 3
+    },
+    {
+      "time": 92.25,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 93.18,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 94.13,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 95.06,
+      "type": "bomb",
+      "lane": 3
+    },
+    {
+      "time": 95.9,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 96.91,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 97.82,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 98.63,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 99.51,
+      "type": "bomb",
+      "lane": 4
+    },
+    {
+      "time": 100.39,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 101.37,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 102.21,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 103.07,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 103.99,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 104.97,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 105.9,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 106.75,
+      "type": "bomb",
+      "lane": 3
+    },
+    {
+      "time": 107.66,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 108.67,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 109.45,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 110.35,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 111.29,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 112.21,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 113.06,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 113.95,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 114.87,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 115.8,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 116.7,
+      "type": "bomb",
+      "lane": 4
+    },
+    {
+      "time": 117.64,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 118.45,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 119.4,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 120.42,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 121.33,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 122.15,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 123.02,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 124.04,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 124.94,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 125.82,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 126.59,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 127.57,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 128.5,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 129.32,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 130.22,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 131.25,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 132.16,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 133.0,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 133.97,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 134.84,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 135.76,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 136.5,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 137.59,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 138.36,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 139.32,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 140.13,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 141.19,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 141.92,
+      "type": "bomb",
+      "lane": 3
+    },
+    {
+      "time": 142.88,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 143.77,
+      "type": "bomb",
+      "lane": 3
+    },
+    {
+      "time": 144.77,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 145.57,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 146.48,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 147.44,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 148.41,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 149.22,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 150.19,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 151.11,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 151.91,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 152.8,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 153.8,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 154.71,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 155.63,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 156.4,
+      "type": "bomb",
+      "lane": 4
+    },
+    {
+      "time": 157.39,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 158.28,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 159.22,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 160.18,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 161.05,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 161.85,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 162.77,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 163.62,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 164.57,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 165.59,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 166.5,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 167.23,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 168.19,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 169.15,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 170.06,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 170.94,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 171.92,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 172.82,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 173.71,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 174.54,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 175.37,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 176.33,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 177.25,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 178.09,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 179.06,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 180.02,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 180.81,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 181.78,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 182.6,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 183.49,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 184.44,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 185.41,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 186.23,
+      "type": "bomb",
+      "lane": 4
+    },
+    {
+      "time": 187.2,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 188.01,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 188.9,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 189.84,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 190.83,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 191.74,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 192.64,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 193.57,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 194.5,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 195.33,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 196.21,
+      "type": "bomb",
+      "lane": 2
+    },
+    {
+      "time": 197.2,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 197.97,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 198.89,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 199.79,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 200.73,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 201.7,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 202.51,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 203.45,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 204.29,
+      "type": "bomb",
+      "lane": 4
+    },
+    {
+      "time": 205.24,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 206.18,
+      "type": "bomb",
+      "lane": 3
+    },
+    {
+      "time": 207.13,
+      "type": "bomb",
+      "lane": 1
+    },
+    {
+      "time": 208.05,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 208.81,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 209.74,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 210.63,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 211.53,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 212.43,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 213.34,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 214.34,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 215.21,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 216.13,
+      "type": "bomb",
+      "lane": 3
+    },
+    {
+      "time": 216.94,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 217.88,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 218.76,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 219.74,
+      "type": "bomb",
+      "lane": 4
+    },
+    {
+      "time": 220.54,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 221.45,
+      "type": "bomb",
+      "lane": 4
+    },
+    {
+      "time": 222.42,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 223.25,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 224.17,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 225.09,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 225.96,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 227.02,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 227.78,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 228.65,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 229.72,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 230.47,
+      "type": "bomb",
+      "lane": 1
+    },
+    {
+      "time": 231.41,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 232.36,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 233.25,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 234.21,
+      "type": "bomb",
+      "lane": 1
+    },
+    {
+      "time": 235.15,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 235.91,
+      "type": "bomb",
+      "lane": 3
+    },
+    {
+      "time": 236.86,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 237.69,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 238.59,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 239.66,
+      "type": "bomb",
+      "lane": 2
+    },
+    {
+      "time": 240.53,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 241.34,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 242.21,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 243.18,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 244.17,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 245.01,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 245.94,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 246.7,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 247.74,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 248.69,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 249.57,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 250.49,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 251.27,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 252.15,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 253.15,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 254.03,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 255.01,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 255.84,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 256.74,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 257.58,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 258.64,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 259.36,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 260.4,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 261.23,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 262.21,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 263.14,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 263.93,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 264.82,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 265.81,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 266.6,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 267.54,
+      "type": "enemy",
+      "lane": 4
+    },
+    {
+      "time": 268.58,
+      "type": "enemy",
+      "lane": 1
+    },
+    {
+      "time": 269.34,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 270.27,
+      "type": "enemy",
+      "lane": 3
+    },
+    {
+      "time": 271.29,
+      "type": "enemy",
+      "lane": 2
+    },
+    {
+      "time": 272.09,
+      "type": "enemy",
+      "lane": 1
+    }
+  ]
+}

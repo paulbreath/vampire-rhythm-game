@@ -1,0 +1,174 @@
+{
+  "meta": {
+    "app": "SpriteSheetSplitter",
+    "version": "1.0",
+    "image": "enemy-02-vampire-bat.png",
+    "size": {
+      "w": 2048,
+      "h": 1146
+    },
+    "scale": 1
+  },
+  "frames": {
+    "frame_0.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 573
+      }
+    },
+    "frame_1.png": {
+      "frame": {
+        "x": 512,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 573
+      }
+    },
+    "frame_2.png": {
+      "frame": {
+        "x": 1024,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 573
+      }
+    },
+    "frame_3.png": {
+      "frame": {
+        "x": 1536,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 573
+      }
+    },
+    "frame_4.png": {
+      "frame": {
+        "x": 0,
+        "y": 573,
+        "w": 512,
+        "h": 573
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 573
+      }
+    },
+    "frame_5.png": {
+      "frame": {
+        "x": 512,
+        "y": 573,
+        "w": 512,
+        "h": 573
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 573
+      }
+    },
+    "frame_6.png": {
+      "frame": {
+        "x": 1024,
+        "y": 573,
+        "w": 512,
+        "h": 573
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 573
+      }
+    },
+    "frame_7.png": {
+      "frame": {
+        "x": 1536,
+        "y": 573,
+        "w": 512,
+        "h": 573
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 573
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 573
+      }
+    }
+  }
+}
