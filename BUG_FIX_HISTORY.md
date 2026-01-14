@@ -317,3 +317,55 @@ const aspectRatio = 614 / 1100; // 错误的宽高比
 **状态**: ✅ 已修复,待验证
 
 ---
+
+### BUG #007: BOSS关卡加载不存在的动画资源 (2026-01-14)
+
+**问题描述**:
+- BOSS关卡中出现大量资源加载失败错误:
+  - Failed to load IDLE sprite
+  - Failed to load ATTACK sprite
+  - Failed to load WALK sprite
+  - Failed to load HURT sprite
+  - Failed to load skeleton animations
+- 这些错误不影响游戏运行,但会在控制台产生大量错误信息
+
+**根本原因**:
+- BOSS关卡中BOSS和主角都使用静态图片显示,不需要动画sprite
+- 但代码仍然尝试加载主角动画sprite(IDLE/WALK/ATTACK/HURT)
+- 代码仍然尝试加载skeleton敌人动画
+- 这些动画文件路径不存在或文件缺失,导致加载失败
+
+**修复方法**:
+1. 在`loadAssets()`函数中添加`isBossStage`判断
+2. BOSS关卡跳过主角动画sprite的加载:
+   ```typescript
+   if (!this.isBossStage) {
+     // 加载玩家精灵动画 (IDLE/WALK/ATTACK/HURT)
+   } else {
+     console.log('BOSS关卡：跳过主角动画加载，使用静态图片');
+   }
+   ```
+3. BOSS关卡跳过skeleton动画的加载:
+   ```typescript
+   if (!this.isBossStage) {
+     this.loadSkeletonAnimations();
+   }
+   ```
+
+**修改的文件**:
+- `client/src/lib/gameEngine.ts` (第315-361行, 第467-470行)
+
+**验证方法**:
+- 进入任意BOSS关卡
+- 检查控制台是否还有"Failed to load"错误
+- 确认BOSS和主角正常显示(使用静态图片)
+
+**用户要求**:
+- BOSS关卡中BOSS和主角都是静态图片,不需要动画
+- 清理所有尝试加载不存在动画的代码
+
+**Commit**: (待提交)
+
+**状态**: ✅ 已修复,待验证
+
+---

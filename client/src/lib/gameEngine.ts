@@ -312,47 +312,53 @@ export class GameEngine {
     this.playerImage.onerror = () => console.error('Failed to load player image');
     this.playerImage.src = '/images/hero-player.png';
     
-    // 加载玩家精灵动画
-    const idleImg = new Image();
-    const walkImg = new Image();
-    const attackImg = new Image();
-    const hurtImg = new Image();
-    
-    let loadedCount = 0;
-    const checkAllLoaded = () => {
-      loadedCount++;
-      if (loadedCount === 4) {
-        this.initializePlayerAnimation(idleImg, walkImg, attackImg, hurtImg);
-      }
-    };
-    
-    idleImg.onload = () => {
-      console.log('Player IDLE sprite loaded');
-      checkAllLoaded();
-    };
-    idleImg.onerror = () => console.error('Failed to load IDLE sprite');
-    idleImg.src = vampireHeroSprites.idle; // 使用配置文件中的透明图片
-    
-    walkImg.onload = () => {
-      console.log('Player WALK sprite loaded');
-      checkAllLoaded();
-    };
-    walkImg.onerror = () => console.error('Failed to load WALK sprite');
-    walkImg.src = vampireHeroSprites.walk; // 使用配置文件中的透明图片
-    
-    attackImg.onload = () => {
-      console.log('Player ATTACK sprite loaded');
-      checkAllLoaded();
-    };
-    attackImg.onerror = () => console.error('Failed to load ATTACK sprite');
-    attackImg.src = vampireHeroSprites.attack; // 使用配置文件中的透明图片
-    
-    hurtImg.onload = () => {
-      console.log('Player HURT sprite loaded');
-      checkAllLoaded();
-    };
-    hurtImg.onerror = () => console.error('Failed to load HURT sprite');
-    hurtImg.src = vampireHeroSprites.hurt; // 使用配置文件中的透明图片
+    // BOSS关卡中主角使用静态图片，不需要加载动画sprite
+    // 只有普通关卡才需要主角动画
+    if (!this.isBossStage) {
+      // 加载玩家精灵动画
+      const idleImg = new Image();
+      const walkImg = new Image();
+      const attackImg = new Image();
+      const hurtImg = new Image();
+      
+      let loadedCount = 0;
+      const checkAllLoaded = () => {
+        loadedCount++;
+        if (loadedCount === 4) {
+          this.initializePlayerAnimation(idleImg, walkImg, attackImg, hurtImg);
+        }
+      };
+      
+      idleImg.onload = () => {
+        console.log('Player IDLE sprite loaded');
+        checkAllLoaded();
+      };
+      idleImg.onerror = () => console.error('Failed to load IDLE sprite');
+      idleImg.src = vampireHeroSprites.idle; // 使用配置文件中的透明图片
+      
+      walkImg.onload = () => {
+        console.log('Player WALK sprite loaded');
+        checkAllLoaded();
+      };
+      walkImg.onerror = () => console.error('Failed to load WALK sprite');
+      walkImg.src = vampireHeroSprites.walk; // 使用配置文件中的透明图片
+      
+      attackImg.onload = () => {
+        console.log('Player ATTACK sprite loaded');
+        checkAllLoaded();
+      };
+      attackImg.onerror = () => console.error('Failed to load ATTACK sprite');
+      attackImg.src = vampireHeroSprites.attack; // 使用配置文件中的透明图片
+      
+      hurtImg.onload = () => {
+        console.log('Player HURT sprite loaded');
+        checkAllLoaded();
+      };
+      hurtImg.onerror = () => console.error('Failed to load HURT sprite');
+      hurtImg.src = vampireHeroSprites.hurt; // 使用配置文件中的透明图片
+    } else {
+      console.log('BOSS关卡：跳过主角动画加载，使用静态图片');
+    }
     
     // 加载敌人精灵
     const enemyTypes: Enemy['type'][] = [
@@ -458,7 +464,10 @@ export class GameEngine {
     }
     
     // 加载骨骼兵动画（idle + attack）
-    this.loadSkeletonAnimations();
+    // BOSS关卡不需要skeleton动画
+    if (!this.isBossStage) {
+      this.loadSkeletonAnimations();
+    }
     
     // 加载新怪物序列帧动画（等待加载完成）
     await this.loadNewEnemyAnimations(); // 启用：加载所有BOSS和小怪的序列帧动画
